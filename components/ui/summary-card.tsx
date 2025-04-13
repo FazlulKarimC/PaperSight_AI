@@ -23,7 +23,7 @@ export default function SummaryCard({ summary, onDelete }: SummaryProps) {
     try {
       await navigator.clipboard.writeText(summary.summary_text)
       toast.success("Summary copied to clipboard")
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy summary")
     }
   }

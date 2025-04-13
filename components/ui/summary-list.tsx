@@ -5,41 +5,36 @@ import SummaryCard from "@/components/ui/summary-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { getSummaries } from "@/lib/getSummaries"
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs'
+import Image from 'next/image'
+import type { Summary } from '@/lib/getSummaries'
 
 export default function SummaryList() {
-  const { user }  = useUser();
-  const [summaries, setSummaries] = useState<any[]>([])
+  const { user }  = useUser()
+  const [summaries, setSummaries] = useState<Summary[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    async function loadMoreSummaries() {
+      if (!user?.id) return
+      try {
+        setIsLoading(true)
+        const newSummaries = await getSummaries(user.id)
+        if (!newSummaries) {
+          return
+        }
+        setSummaries(newSummaries)
+      } catch (error) {
+        console.error('Failed to load summaries:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     if (user?.id) {
       loadMoreSummaries()
     }
   }, [user?.id])
-
-  const loadMoreSummaries = async () => {
-    if (!user?.id) return
-    try {
-      setIsLoading(true)
-      const newSummaries = await getSummaries(user.id)
-      if (!newSummaries) {
-        return
-      }
-      const formattedSummaries = newSummaries.map((summary: Record<string, any>) => ({
-        id: summary.id,
-        title: summary.title,
-        created_at: summary.created_at,
-        summary_text: summary.summary_text,
-        status: summary.status,
-      }))
-      setSummaries(formattedSummaries)
-    } catch (error) {
-      console.error('Failed to load summaries:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleDelete = (deletedId: string) => {
     setSummaries(current => current.filter(summary => summary.id !== deletedId))
@@ -50,10 +45,12 @@ export default function SummaryList() {
       {!isLoading && summaries.length === 0 ? (
         <div className="text-center py-12">
           <div className="flex justify-center">
-            <img 
+            <Image 
               src="/file.svg" 
               alt="No summaries" 
-              className="w-24 h-24 opacity-50 mb-4"
+              width={96}
+              height={96}
+              className="opacity-50 mb-4"
             />
           </div>
           <h3 className="text-xl font-semibold mb-2">No summaries yet</h3>

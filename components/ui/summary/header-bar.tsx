@@ -10,11 +10,10 @@ interface HeaderBarProps {
   readTime: string
   source: string
   originalfileurl: string
-  wordCount: number
   summaryText: string
 }
 
-export default function HeaderBar({ title, date, readTime, source, originalfileurl,wordCount, summaryText }: HeaderBarProps) {
+export default function HeaderBar({ title, date, readTime, source, originalfileurl, summaryText }: HeaderBarProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
