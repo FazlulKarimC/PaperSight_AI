@@ -43,6 +43,10 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
       const response = await startUpload([file])
 
       if (!response) {
+        toast.error("Upload failed", {
+          description: "An error occurred while uploading the file.",
+          id: toastId,
+        })
         throw new Error("Upload failed")
       }
 
