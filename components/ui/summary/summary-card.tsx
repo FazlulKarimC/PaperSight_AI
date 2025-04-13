@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Summary } from "@/lib/getSummaries"
 import { FileText } from "lucide-react"
+import { SummaryContentViewer } from "./summary-content-viewer"
 
 interface SummaryCardProps {
   summary: Summary
@@ -14,8 +15,7 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
           <FileText className="mr-1 w-4 h-4" />
           {summary.word_count} words
         </div>
-        <h2 className="text-2xl font-bold">{summary.title}</h2>
-        <p className="text-gray-500 mt-2">{summary.summary_text}</p>
+        <SummaryContentViewer summaryText={summary.summary_text} />
       </CardContent>
     </Card>
   )
