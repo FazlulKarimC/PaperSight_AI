@@ -20,9 +20,9 @@ export default function SummariesPage() {
 
         <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800 mb-8">
           <AlertDescription className="flex items-center justify-between flex-wrap gap-2">
-            <span>You&apos;ve reached the limit of 5 uploads on the Basic plan.</span>
+            <span>You&apos;ve only 5 uploads on the Basic plan.</span>
             <Button variant="destructive" className="bg-red-600 hover:bg-red-700 text-white" size="sm">
-              Click here to Upgrade to Pro ✨ for unlimited uploads.
+              Upgrade to Pro ✨
             </Button>
           </AlertDescription>
         </Alert>

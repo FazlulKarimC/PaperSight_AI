@@ -1,24 +1,33 @@
 // app/actions.ts
 "use server";
-import { neon, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
+import { neon } from "@neondatabase/serverless";
 
 let sql: ReturnType<typeof neon> | null = null;
 
-// Only use WebSocket in Node.js environment
-if (typeof process !== 'undefined') {
-    neonConfig.webSocketConstructor = ws;
+function isValidDatabaseUrl(url: string) {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function getDbConnection() {
-    if (!process.env.DATABASE_URL) {
-        throw new Error("DATABASE_URL is not defined");
+    const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+        throw new Error("DATABASE_URL environment variable is not defined");
+    }
+
+    if (!isValidDatabaseUrl(databaseUrl)) {
+        throw new Error(`Invalid DATABASE_URL format: ${databaseUrl.replace(/:[^:@]+@/, ':****@')}`);
     }
 
     try {
         // Reuse existing connection if available
         if (!sql) {
-            sql = neon(process.env.DATABASE_URL);
+            sql = neon(databaseUrl);
         }
         return sql;
     } catch (error) {
@@ -27,12 +36,9 @@ export async function getDbConnection() {
     }
 }
 
-// Cleanup function to be called during shutdown
 export async function closeDbConnection() {
     try {
         if (sql) {
-            // In serverless environments, we don't need to explicitly close connections
-            // as they are automatically managed. Just clear the reference.
             sql = null;
         }
     } catch (error) {
