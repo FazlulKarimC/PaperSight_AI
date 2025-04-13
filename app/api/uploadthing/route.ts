@@ -8,7 +8,7 @@ export const { GET, POST } = createRouteHandler({
 
   config: {
     callbackUrl: process.env.UPLOADTHING_CALLBACK_URL
-      ? `${process.env.UPLOADTHING_CALLBACK_URL}`
-      : "http://localhost:3000",
+      ? `${process.env.UPLOADTHING_CALLBACK_URL}/api/uploadthing`
+      : "http://localhost:3000/api/uploadthing",
   },
 });
