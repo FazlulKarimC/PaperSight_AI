@@ -9,6 +9,8 @@ export const { GET, POST } = createRouteHandler({
   config: {
     callbackUrl: process.env.UPLOADTHING_CALLBACK_URL
       ? `${process.env.UPLOADTHING_CALLBACK_URL}/api/uploadthing`
+      : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}/api/uploadthing`
       : "http://localhost:3000/api/uploadthing",
-  },
+  }
 });
