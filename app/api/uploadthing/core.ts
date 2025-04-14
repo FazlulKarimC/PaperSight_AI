@@ -15,25 +15,45 @@ export const ourFileRouter = {
   })
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req }) => {
-
-      const { userId } = getAuth(req); // ✅ safe for UploadThing
-      console.log("userId", userId);
-      if (!userId) throw new UploadThingError("Unauthorized");
-      return { userId };
+      try {
+        const { userId } = getAuth(req); // ✅ safe for UploadThing
+        console.log("userId", userId);
+        if (!userId) throw new UploadThingError("Unauthorized");
+        return { userId };
+      } catch (err) {
+        console.error("Middleware error:", err);
+        throw new UploadThingError("Authentication failed");
+      }
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("onUploadComplete", metadata, file);
+      console.log("Starting onUploadComplete...");
       try {
+        if (!metadata?.userId) {
+          console.error("No userId in metadata");
+          throw new Error("No userId provided");
+        }
+
         console.log("Upload complete for userId:", metadata.userId);
-        console.log("file url", file.ufsUrl);
-    
+        console.log("File details:", {
+          url: file.url,
+          name: file.name,
+          size: file.size,
+          key: file.key,
+          ufsUrl: file.ufsUrl
+        });
+
         return {
           uploadedBy: metadata.userId,
           fileurl: file.ufsUrl,
         };
       } catch (err) {
         console.error("onUploadComplete error:", err);
-        throw new UploadThingError("Upload handler failed.");
+        // Don't throw here, just log the error and return basic response
+        return {
+          uploadedBy: metadata?.userId,
+          fileurl: file.ufsUrl,
+          error: "Upload completed with warnings"
+        };
       }
     }),
 } satisfies FileRouter;
