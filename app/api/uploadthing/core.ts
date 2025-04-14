@@ -13,9 +13,8 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       try {
-        console.log(process.env.UPLOADTHING_TOKEN);
+
         const { userId } = getAuth(req);
-        console.log("userId", userId);
         if (!userId) throw new UploadThingError("Unauthorized");
         return { userId };
       } catch (err) {
@@ -24,7 +23,6 @@ export const ourFileRouter = {
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Starting onUploadComplete...");
       try {
         if (!metadata?.userId) {
           console.error("No userId in metadata");
@@ -32,13 +30,6 @@ export const ourFileRouter = {
         }
 
         console.log("Upload complete for userId:", metadata.userId);
-        console.log("File details:", {
-          url: file.url,
-          name: file.name,
-          size: file.size,
-          key: file.key,
-          ufsUrl: file.ufsUrl
-        });
 
         return {
           uploadedBy: metadata.userId,
