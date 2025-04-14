@@ -4,19 +4,16 @@ import { getAuth } from "@clerk/nextjs/server";
 
 const f = createUploadthing();
 
-// FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
-  // Define as many FileRoutes as you like, each with a unique routeSlug
   pdfUploader: f({
     pdf: {
       maxFileSize: "32MB",
       maxFileCount: 1,
     },
   })
-    // Set permissions and file types for this FileRoute
     .middleware(async ({ req }) => {
       try {
-        const { userId } = getAuth(req); // ✅ safe for UploadThing
+        const { userId } = getAuth(req);
         console.log("userId", userId);
         if (!userId) throw new UploadThingError("Unauthorized");
         return { userId };
@@ -48,7 +45,6 @@ export const ourFileRouter = {
         };
       } catch (err) {
         console.error("onUploadComplete error:", err);
-        // Don't throw here, just log the error and return basic response
         return {
           uploadedBy: metadata?.userId,
           fileurl: file.ufsUrl,

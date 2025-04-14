@@ -5,6 +5,7 @@ import { ourFileRouter } from "./core";
 export const { GET, POST } = createRouteHandler({
   router: ourFileRouter,
   config: {
+    token: process.env.UPLOADTHING_TOKEN,
     // Ensure the callback URL is properly set for both production and development
     callbackUrl: process.env.NEXT_PUBLIC_APP_URL 
       ? `${process.env.NEXT_PUBLIC_APP_URL}/api/uploadthing` 
