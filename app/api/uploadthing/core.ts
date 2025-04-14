@@ -13,6 +13,7 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       try {
+        console.log(process.env.UPLOADTHING_TOKEN);
         const { userId } = getAuth(req);
         console.log("userId", userId);
         if (!userId) throw new UploadThingError("Unauthorized");

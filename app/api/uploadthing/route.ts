@@ -12,6 +12,6 @@ export const { GET, POST } = createRouteHandler({
       : process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}/api/uploadthing` 
       : "http://localhost:3000/api/uploadthing",
-    logLevel: "Debug", // Change to debug to get more detailed logs
+    logLevel: "Error", // Change to "Debug", // Change to debug to get more detailed logs
   },
 });
