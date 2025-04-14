@@ -15,8 +15,10 @@ export const ourFileRouter = {
   })
     // Set permissions and file types for this FileRoute
     .middleware(async ({ req }) => {
+      console.log("middleware", req);
       const { userId } = getAuth(req); // ✅ safe for UploadThing
-      if (!userId) throw new UploadThingError("Unauthorized");
+      console.log("userId", userId);
+      // if (!userId) throw new UploadThingError("Unauthorized");
       return { userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
