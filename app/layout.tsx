@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/ui/common/navbar";
-import Footer from "@/components/ui/common/footer";
 import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from "sonner";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,12 +28,11 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className="h-full">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-full flex flex-col`}>
-          <Navbar />
-          <main className="flex-1 w-full bg-gradient-to-b from-indigo-300 via-indigo-200 to-white">
+        <body className={`antialiased min-h-full flex flex-col`}>
+          <BackgroundBeams className="absolute inset-0 z-0" />
+          <main className="flex-1 w-full bg-gradient-to-b from-indigo-900 via-gray-900 to-black">
             {children}
           </main>
-          <Footer />
           <Toaster position="top-right" />
         </body>
       </html>
