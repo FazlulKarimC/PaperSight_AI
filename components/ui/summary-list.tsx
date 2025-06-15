@@ -15,7 +15,7 @@ export default function SummaryList() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    async function loadMoreSummaries() {
+    async function loadSummaries() {
       if (!user?.id) return
       try {
         setIsLoading(true)
@@ -32,7 +32,10 @@ export default function SummaryList() {
     }
 
     if (user?.id) {
-      loadMoreSummaries()
+      loadSummaries()
+    } else {
+      setSummaries([])
+      setIsLoading(false)
     }
   }, [user?.id])
 

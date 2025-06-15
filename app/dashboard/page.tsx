@@ -1,32 +1,31 @@
 import SummariesList from "@/components/ui/summary-list"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { Navbar } from "@/components/hero-section"
+import { Plus } from "lucide-react";
 
 
 export default function SummariesPage() {
   return (
-    <div className="min-h-screen w-full py-20">
-      <div className="container max-w-6xl px-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Your Summaries</h1>
-            <p className="text-muted-foreground">Transform your PDFs into concise, actionable insights</p>
-          </div>
-          <Link href="/upload">
-            <Button className="mt-4 sm:mt-0">+ New Summary</Button>
-          </Link>
+    <div className="min-h-screen w-full relative mx-auto my-10 flex max-w-7xl flex-col items-center justify-center">
+      <Navbar />
+      <div className="absolute inset-x-0 bottom-0 h-px w-full bg-neutral-200/80 dark:bg-neutral-800/80">
+        <div className="absolute mx-auto h-px w-40 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+      </div>
+
+      <div className="px-8 py-4 md:py-20 flex justify-between w-full">
+        <div>
+          <h1 className="font-bold tracking-tight text-foreground mb-2">Your Summaries</h1>
+          <p className="text-muted-foreground">Transform your PDFs into concise, actionable insights</p>
         </div>
+        <Link href="/upload">
+          <Button className="mt-4 sm:mt-0">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
 
-        <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800 mb-8">
-          <AlertDescription className="flex items-center justify-between flex-wrap gap-2">
-            <span>You&apos;ve only 5 uploads on the Basic plan.</span>
-            <Button variant="destructive" className="bg-red-600 hover:bg-red-700 text-white" size="sm">
-              Upgrade to Pro ✨
-            </Button>
-          </AlertDescription>
-        </Alert>
-
+      <div className="px-4 py-4 md:py-8 w-full">
         <SummariesList />
       </div>
     </div>
