@@ -30,7 +30,7 @@ export default function RootLayout({
       <html lang="en" className="h-full">
         <body className={`antialiased min-h-full flex flex-col`}>
           <BackgroundBeams className="absolute inset-0 z-0" />
-          <main className="flex-1 w-full bg-gradient-to-b from-indigo-900 via-gray-900 to-black">
+          <main className="flex-1 w-full bg-gradient-to-b from-indigo-900 via-gray-900 to-gray-950">
             {children}
           </main>
           <Toaster position="top-right" />

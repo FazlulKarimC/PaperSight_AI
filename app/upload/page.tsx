@@ -7,7 +7,8 @@ import { FilePreview } from "@/components/ui/upload/file-preview"
 import { usePDFUpload } from "@/hooks/use-pdf-upload"
 import Link from "next/link"
 import { Navbar } from "@/components/hero-section"
-import { FileText } from "lucide-react";
+import { FileText, AlertCircleIcon } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function PdfUploadForm() {
   const {
@@ -28,7 +29,7 @@ export default function PdfUploadForm() {
         <div className="absolute mx-auto h-px w-40 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
       </div>
 
-      <div className="px-8 py-4 md:py-20 flex justify-between w-full">
+      <div className="px-8 py-4 md:pt-20 md:pb-5 flex justify-between w-full">
         <div>
           <h1 className="font-bold tracking-tight text-foreground mb-2">Upload PDF</h1>
           <p className="text-muted-foreground">Transform your PDFs into concise, actionable insights</p>
@@ -41,7 +42,14 @@ export default function PdfUploadForm() {
         </Link>
       </div>
 
-      <div className="md:w-2xl flex flex-col p-4 w-full m-auto">
+      <Alert className="mx-4">
+        <AlertCircleIcon className="w-4 h-4" color="red"/>
+        <AlertDescription className="text-rose-600">
+          Please do not upload images or scanned PDFs. Only text-based PDFs are supported for summarization.
+        </AlertDescription>
+      </Alert>
+
+      <div className="md:w-2xl flex flex-col p-4 w-full m-auto pb-20">
         <Card className="w-full max-w-2xl">
           <CardContent className="pt-6">
             <DropZone

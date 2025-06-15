@@ -4,6 +4,8 @@
 import { motion } from "motion/react";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import Link from "next/link"
+import { BookOpenText } from 'lucide-react';
+
 
 export default function HeroSectionOne() {
   return (
@@ -106,10 +108,13 @@ export default function HeroSectionOne() {
 export const Navbar = () => {
   const { isSignedIn } = useUser()
   return (
-    <nav className="flex w-full items-center justify-between border-t border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
+    <nav className="flex w-full items-center justify-between border-t border-b border-neutral-200 py-4 dark:border-neutral-800">
       <div className="flex items-center gap-2">
-        <div className="size-7 rounded-full bg-gradient-to-br from-violet-500 to-pink-500" />
-        <h1 className="text-foreground font-bold md:text-2xl">PaperSight AI</h1>
+        <div />
+        <BookOpenText className="h-7 w-7 text-indigo-300" />
+        <Link href={"/"}>
+          <h1 className="text-foreground font-bold md:text-2xl">PaperSight AI</h1>
+        </Link>
       </div>
       <div>
         {!isSignedIn ? (
