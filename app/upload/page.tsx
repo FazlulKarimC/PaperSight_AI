@@ -31,8 +31,8 @@ export default function PdfUploadForm() {
 
       <div className="px-8 py-4 md:pt-20 md:pb-5 flex justify-between w-full">
         <div>
-          <h1 className="font-bold tracking-tight text-foreground mb-2">Upload PDF</h1>
-          <p className="text-muted-foreground">Transform your PDFs into concise, actionable insights</p>
+          <h1 className="font-bold tracking-tight text-secondary mb-2">Upload PDF</h1>
+          <p className="text-muted">Transform your PDFs into concise, actionable insights</p>
         </div>
         <Link href="/dashboard">
           <Button className="mt-4 sm:mt-0">

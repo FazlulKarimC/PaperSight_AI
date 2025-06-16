@@ -15,8 +15,8 @@ export default function SummariesPage() {
 
       <div className="px-4 py-4 md:pt-20 md:pb-5 flex justify-between w-full">
         <div>
-          <h1 className="font-bold tracking-tight text-foreground mb-2">Your Summaries</h1>
-          <p className="text-muted-foreground">Transform your PDFs into concise, actionable insights</p>
+          <h1 className="font-bold tracking-tight text-secondary mb-2">Your Summaries</h1>
+          <p className="tracking-tight text-muted">Transform your PDFs into concise, actionable insights</p>
         </div>
         <Link href="/upload">
           <Button className="mt-4 sm:mt-0">

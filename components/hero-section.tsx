@@ -113,7 +113,7 @@ export const Navbar = () => {
         <div />
         <BookOpenText className="h-7 w-7 text-indigo-300" />
         <Link href={"/"}>
-          <h1 className="text-foreground font-bold md:text-2xl">PaperSight AI</h1>
+          <h1 className="text-secondary font-bold md:text-2xl">PaperSight AI</h1>
         </Link>
       </div>
       <div>

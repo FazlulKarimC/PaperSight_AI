@@ -8,7 +8,7 @@ import {
     DialogClose,
     DialogFooter
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"  
+import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
 import { deleteSummaryAction } from "@/actions/summary"
 import { toast } from "sonner"
@@ -38,9 +38,9 @@ export const DeleteSummary = ({ summaryId, onDelete }: DeleteSummaryProps) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
-                    <Trash2 className="h-4 w-4" />
-                </Button>
+                <button className="size-9 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors flex items-center justify-center" title="Copy summary">
+                    <Trash2 className="h-4 w-4 text-red-700"/>
+                </button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -60,5 +60,5 @@ export const DeleteSummary = ({ summaryId, onDelete }: DeleteSummaryProps) => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    )       
+    )
 }

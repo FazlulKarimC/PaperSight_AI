@@ -12,7 +12,7 @@ export const SummaryContentViewer = ({ summaryText }: SummaryContentViewerProps)
         const [title, ...points] = section.split('\n');
         return (
           <div key={index} className="space-y-3">
-            <h2 className="text-xl font-semibold text-pink-600">{title.trim()}</h2>
+            <h2 className="text-xl font-semibold text-indigo-600">{title.trim()}</h2>
             <div className="space-y-2">
               {points
                 .filter(point => point.trim().startsWith('•'))

@@ -9,7 +9,7 @@ interface SummaryCardProps {
 
 export default function SummaryCard({ summary }: SummaryCardProps) {
   return (
-    <Card className="w-full shadow-md">
+    <Card className="bg-indigo-50 w-full shadow-md">
       <CardContent className="pt-6 pb-12">
         <div className="absolute right-4 top-4 text-sm text-gray-400 flex items-center">
           <FileText className="mr-1 w-4 h-4" />

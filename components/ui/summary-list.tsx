@@ -53,11 +53,11 @@ export default function SummaryList() {
               alt="No summaries" 
               width={96}
               height={96}
-              className="opacity-50 mb-4"
+              className="opacity-60 mb-4"
             />
           </div>
-          <h3 className="text-xl font-semibold mb-2">No summaries yet</h3>
-          <p className="text-muted-foreground mb-6">Upload a PDF to get started with your first summary</p>
+          <h3 className="text-xl font-semibold mb-2 text-secondary">No summaries yet</h3>
+          <p className="text-muted mb-6">Upload a PDF to get started with your first summary</p>
           <a href="/upload">
             <Button>Create Your First Summary</Button>
           </a>

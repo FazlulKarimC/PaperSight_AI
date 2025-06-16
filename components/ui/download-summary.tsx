@@ -20,16 +20,16 @@ Time: ${new Date().toLocaleTimeString()}
 ----------------------------------------
 
 ${content}`
-      
+
       // Create blob from formatted content
       const blob = new Blob([formattedContent], { type: 'text/plain' })
-      
+
       // Create temporary link element
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_summary.txt`
-      
+
       // Trigger download
       document.body.appendChild(link)
       link.click()
@@ -44,14 +44,9 @@ ${content}`
   }
 
   return (
-    <Button 
-      variant="outline" 
-      size="sm" 
-      className="text-pink-500 hover:text-pink-600"
-      onClick={handleDownload}
-    >
+    <button onClick={handleDownload} className="px-4 py-2 rounded-2xl bg-indigo-100 text-indigo-800 hover:bg-indigo-200 shadow-md transition-color flex items-center justify-center font-semibold text-sm">
       <Download className="mr-2 h-4 w-4" />
       Download Summary
-    </Button>
+    </button>
   )
 }

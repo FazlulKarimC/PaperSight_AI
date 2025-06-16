@@ -1,6 +1,5 @@
 import { FileText, Copy } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
@@ -29,27 +28,21 @@ export default function SummaryCard({ summary, onDelete }: SummaryProps) {
   }
 
   return (
-    <Card className="overflow-hidden border group cursor-pointer">
+    <Card className="bg-indigo-50 overflow-hidden border group cursor-pointer">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-2">
-          <Link href={`/summary/${summary.id}`} className="flex-1">
-            <div className="flex items-center space-x-3">
-              <FileText className="h-6 w-6 text-rose-500" />
-              <h3 className="font-medium text-lg line-clamp-1 group-hover:text-primary transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <Link href={`/summary/${summary.id}`} className="flex-1 min-w-0">
+            <div className="flex items-center space-x-3 min-w-0">
+              <FileText className="h-6 w-6 text-indigo-600" />
+              <h3 className="font-medium text-lg text-indigo-500 line-clamp-1 group-hover:text-indigo-800 transition-colors truncate">
                 {summary.title}
               </h3>
             </div>
           </Link>
           <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="text-muted-foreground"
-              onClick={handleCopy}
-              title="Copy summary"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+            <button onClick={handleCopy} className="size-9 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors flex items-center justify-center" title="Copy summary">
+              <Copy className="h-4 w-4 text-indigo-500" />
+            </button>
             <DeleteSummary summaryId={summary.id} onDelete={onDelete} />
           </div>
         </div>
@@ -59,7 +52,7 @@ export default function SummaryCard({ summary, onDelete }: SummaryProps) {
             {formatDistanceToNow(new Date(summary.created_at), { addSuffix: true })}
           </p>
 
-          <div className="text-sm mb-4 line-clamp-3 group-hover:text-primary/90 transition-colors">
+          <div className="text-black text-sm mb-4 line-clamp-3 group-hover:text-black/90 transition-colors">
             {summary.summary_text}
           </div>
 
