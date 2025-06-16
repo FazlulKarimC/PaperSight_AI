@@ -8,36 +8,44 @@ import { getSummaries } from "@/lib/getSummaries"
 import { useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import type { Summary } from '@/lib/getSummaries'
+import { getGuestUserId } from '@/lib/utils'
+
+
 
 export default function SummaryList() {
   const { user }  = useUser()
   const [summaries, setSummaries] = useState<Summary[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [effectiveUserId, setEffectiveUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const clerkUserId = user?.id;
+    const guestUserId = getGuestUserId();
+    setEffectiveUserId(clerkUserId || guestUserId || null);
+  }, [user?.id]);
 
   useEffect(() => {
     async function loadSummaries() {
-      if (!user?.id) return
+      if (!effectiveUserId) {
+        setSummaries([]);
+        setIsLoading(false);
+        return;
+      }
       try {
-        setIsLoading(true)
-        const newSummaries = await getSummaries(user.id)
+        setIsLoading(true);
+        const newSummaries = await getSummaries(effectiveUserId);
         if (!newSummaries) {
-          return
+          return;
         }
-        setSummaries(newSummaries)
+        setSummaries(newSummaries);
       } catch (error) {
-        console.error('Failed to load summaries:', error)
+        console.error('Failed to load summaries:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-
-    if (user?.id) {
-      loadSummaries()
-    } else {
-      setSummaries([])
-      setIsLoading(false)
-    }
-  }, [user?.id])
+    loadSummaries();
+  }, [effectiveUserId])
 
   const handleDelete = (deletedId: string) => {
     setSummaries(current => current.filter(summary => summary.id !== deletedId))

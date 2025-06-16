@@ -3,7 +3,9 @@
 import { getDbConnection } from "@/lib/db"
 import { generateContentUsingGemini } from "@/lib/gemini"
 import parse from "@/lib/parse"
+import { getGuestUserId } from "@/lib/utils"
 import { auth } from "@clerk/nextjs/server"
+
 
 // Types
 interface PDFSummary {
@@ -139,13 +141,10 @@ export const savePDFSummary = async ({
 }: PDFSummary): Promise<ApiResponse<any>> => {
     try {
         const { userId } = await auth()
-        
+        const effectiveUserId = userId || getGuestUserId()
+
         if (!userId) {
-            return {
-                success: false,
-                message: "User not authenticated",
-                data: null,
-            }
+            console.error("User not authenticated")
         }
 
         if (!summary) {
@@ -157,7 +156,7 @@ export const savePDFSummary = async ({
         }
 
         const savedSummary = await savePDFSummaryToDatabase({
-            userId,
+            userId :  effectiveUserId,
             fileUrl,
             summary,
             title,

@@ -2,7 +2,6 @@
 
 import { toast } from "sonner"
 import { Download } from "lucide-react"
-import { Button } from "./button"
 
 interface DownloadSummaryProps {
   title: string

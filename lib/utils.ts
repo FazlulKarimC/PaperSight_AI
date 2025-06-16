@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { v4 as uuidv4 } from 'uuid';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -10,6 +11,11 @@ export function formatFileSize(bytes: number): string {
   else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
   else if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + " MB"
   else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
+}
+
+export function getGuestUserId(): string {
+  // Generate a random user ID for guest users
+  return `guest-${uuidv4()}`
 }
 
 export const SUMMARY_SYSTEM_PROMPT = `You are a expert who makes complex documents easy and engaging to read. 

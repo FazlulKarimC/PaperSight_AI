@@ -71,9 +71,8 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
       })
 
       // Step 3: Save to database
-      const saveToastId = toast.loading("Saving summary...", {
-        description: "Saving the summary to the database...",
-      })
+
+      console.log("Saving summary to database...")
 
       const savedSummary = await savePDFSummary({
         fileUrl: response[0].ufsUrl,
@@ -86,13 +85,8 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
         throw new Error(savedSummary?.message || "Failed to save summary")
       }
 
-      toast.success(`Save Successful`, {
-        description: "The summary has been saved to the database.",
-        id: saveToastId,
-      })
-
       onUploadComplete?.()
-      
+    
       // Redirect to the summary page
       if (savedSummary.data?.[0]?.id) {
         router.push(`/summary/${savedSummary.data[0].id}`)

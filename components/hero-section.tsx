@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 import Link from "next/link"
 import { BookOpenText } from 'lucide-react';
+import Image from "next/image";
 
 
 export default function HeroSectionOne() {
@@ -22,7 +23,7 @@ export default function HeroSectionOne() {
       </div>
       <div className="px-4 py-10 md:py-20">
         <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-slate-700 md:text-4xl lg:text-7xl dark:text-slate-300">
-          {"Summarize your PDF in seconds, not hours"
+          {"Summarize Your PDF in Seconds, not Hours"
             .split(" ")
             .map((word, index) => (
               <motion.span
@@ -53,7 +54,7 @@ export default function HeroSectionOne() {
           }}
           className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
         >
-          Summarize PDFs in seconds with our cutting-edge AI SaaS.
+          Summarize PDFs in Seconds with our cutting-edge AI SaaS.
           Turn long documents into clear insights—fast, accurate, and effortless.
         </motion.p>
         <motion.div
@@ -91,12 +92,13 @@ export default function HeroSectionOne() {
           className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
         >
           <div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
-            <img
-              src="https://assets.aceternity.com/pro/aceternity-landing.webp"
+            <Image
+              src="/ps_frontpage.png"
               alt="Landing page preview"
               className="aspect-[16/9] h-auto w-full object-cover"
               height={1000}
               width={1000}
+              priority
             />
           </div>
         </motion.div>
@@ -108,7 +110,7 @@ export default function HeroSectionOne() {
 export const Navbar = () => {
   const { isSignedIn } = useUser()
   return (
-    <nav className="flex w-full items-center justify-between border-t border-b border-neutral-200 py-4 dark:border-neutral-800">
+    <nav className="flex w-full items-center justify-between border-t border-b border-neutral-200 py-4 pr-4 dark:border-neutral-800">
       <div className="flex items-center gap-2">
         <div />
         <BookOpenText className="h-7 w-7 text-indigo-300" />

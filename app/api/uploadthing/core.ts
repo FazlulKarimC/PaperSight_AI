@@ -1,6 +1,7 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { getAuth } from "@clerk/nextjs/server";
+import { getGuestUserId } from "@/lib/utils";
 
 const f = createUploadthing();
 
@@ -15,8 +16,12 @@ export const ourFileRouter = {
       try {
 
         const { userId } = getAuth(req);
-        if (!userId) throw new UploadThingError("Unauthorized");
+        if (!userId){
+          console.warn("No userId found, using guest user ID");
+          return { userId: getGuestUserId() };
+        };
         return { userId };
+
       } catch (err) {
         console.error("Middleware error:", err);
         throw new UploadThingError("Authentication failed");

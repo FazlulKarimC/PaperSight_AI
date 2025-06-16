@@ -2,10 +2,14 @@ import SummariesList from "@/components/ui/summary-list"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Navbar } from "@/components/hero-section"
-import { Plus } from "lucide-react";
+import { AlertCircleIcon, Plus } from "lucide-react";
+import { currentUser } from "@clerk/nextjs/server";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 
-export default function SummariesPage() {
+export default async function SummariesPage() {
+  const user = await currentUser();
+  const userId = user?.id;
   return (
     <div className="min-h-screen w-full relative mx-auto my-10 flex max-w-7xl flex-col items-stretch justify-center">
       <Navbar />
@@ -24,6 +28,13 @@ export default function SummariesPage() {
           </Button>
         </Link>
       </div>
+
+      {!userId && (<Alert className="mx-4">
+        <AlertCircleIcon className="w-4 h-4" color="red" />
+        <AlertDescription className="text-rose-600">
+          Log in to unlock your dashboard and access all your past summaries.
+        </AlertDescription>
+      </Alert>)}
 
       <div className="px-4 py-4 md:py-8 w-full">
         <SummariesList />

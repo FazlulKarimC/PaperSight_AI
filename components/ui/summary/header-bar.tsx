@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, Calendar, Clock, FileText } from "lucide-react"
+import { ExternalLink, Calendar, Clock, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DownloadSummary } from "@/components/ui/download-summary"
