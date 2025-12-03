@@ -28,74 +28,21 @@ export default function ContactPage() {
                         <div className="border border-border rounded-xl p-6 text-center">
                             <Mail className="h-8 w-8 text-accent mx-auto mb-4" />
                             <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                            <p className="text-sm text-muted-foreground">support@papersight.ai</p>
+                            <p className="text-sm text-muted-foreground">fazlul0127@gmail.com</p>
                         </div>
                         <div className="border border-border rounded-xl p-6 text-center">
                             <Phone className="h-8 w-8 text-accent mx-auto mb-4" />
                             <h3 className="font-semibold text-foreground mb-2">Phone</h3>
-                            <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                            <p className="text-sm text-muted-foreground">8486853823</p>
                         </div>
                         <div className="border border-border rounded-xl p-6 text-center">
                             <MapPin className="h-8 w-8 text-accent mx-auto mb-4" />
                             <h3 className="font-semibold text-foreground mb-2">Office</h3>
-                            <p className="text-sm text-muted-foreground">San Francisco, CA</p>
+                            <p className="text-sm text-muted-foreground">Bengaluru, India</p>
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-12">
-                        <div>
-                            <h2 className="text-2xl font-semibold text-foreground mb-6">Send us a message</h2>
-                            <form className="space-y-4">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                                        Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                                        placeholder="Your name"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                                        placeholder="your@email.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="subject" className="block text-sm font-medium text-foreground mb-2">
-                                        Subject
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="subject"
-                                        className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                                        placeholder="How can we help?"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
-                                        Message
-                                    </label>
-                                    <textarea
-                                        id="message"
-                                        rows={5}
-                                        className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                                        placeholder="Your message..."
-                                    />
-                                </div>
-                                <Button type="submit" className="w-full bg-foreground text-background hover:bg-foreground/90">
-                                    Send Message
-                                </Button>
-                            </form>
-                        </div>
-
+                    <div className="flex justify-start">
                         <div>
                             <h2 className="text-2xl font-semibold text-foreground mb-6">Frequently Asked Questions</h2>
                             <div className="space-y-4">

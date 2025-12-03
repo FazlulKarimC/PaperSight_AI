@@ -5,26 +5,18 @@ const footerLinks = {
   Product: [
     { name: "Features", href: "/#features" },
     { name: "Pricing", href: "/#pricing" },
-    { name: "API", href: "/api-docs" },
-    { name: "Integrations", href: "/integrations" },
   ],
   Company: [
     { name: "About", href: "/about" },
     { name: "Blog", href: "/blog" },
-    { name: "Careers", href: "/careers" },
-    { name: "Press", href: "/press" },
   ],
   Resources: [
     { name: "Documentation", href: "/docs" },
-    { name: "Help Center", href: "/help" },
-    { name: "Community", href: "/community" },
     { name: "Contact", href: "/contact" },
   ],
   Legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },
-    { name: "Security", href: "/security" },
-    { name: "Cookies", href: "/cookies" },
   ],
 }
 
@@ -60,13 +52,13 @@ export function Footer() {
         <div className="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">© 2025 PaperSight AI. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <Link href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://x.com/FazlulKarim_fk" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
               Twitter
             </Link>
-            <Link href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://www.linkedin.com/in/fazlul0127" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
               LinkedIn
             </Link>
-            <Link href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="https://github.com/FazlulKarimC" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground">
               GitHub
             </Link>
           </div>

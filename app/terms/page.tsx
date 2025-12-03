@@ -88,7 +88,10 @@ export default function TermsPage() {
                         <section>
                             <h2 className="text-2xl font-semibold text-foreground mb-4">Contact Information</h2>
                             <p className="text-muted-foreground">
-                                For questions about these Terms of Service, please contact us at legal@papersight.ai
+                                If you have questions about this Privacy Policy, please contact us at{' '}
+                                <a href="mailto:fazlul0127@gmail.com" className="text-accent hover:underline">
+                                    fazlul0127@gmail.com
+                                </a>
                             </p>
                         </section>
                     </div>

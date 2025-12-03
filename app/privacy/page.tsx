@@ -89,7 +89,10 @@ export default function PrivacyPage() {
                         <section>
                             <h2 className="text-2xl font-semibold text-foreground mb-4">Contact Us</h2>
                             <p className="text-muted-foreground">
-                                If you have questions about this Privacy Policy, please contact us at privacy@papersight.ai
+                                If you have questions about this Privacy Policy, please contact us at{' '}
+                                <a href="mailto:fazlul0127@gmail.com" className="text-accent hover:underline">
+                                    fazlul0127@gmail.com
+                                </a>
                             </p>
                         </section>
                     </div>

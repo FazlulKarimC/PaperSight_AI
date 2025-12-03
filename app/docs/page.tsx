@@ -95,12 +95,12 @@ export default function DocsPage() {
                             Can't find what you're looking for? Our support team is here to help.
                         </p>
                         <div className="flex gap-4">
-                            <Link href="/help">
+                            <Link href="mailto:fazlul0127@gmail.com">
                                 <Button className="bg-foreground text-background hover:bg-foreground/90">
                                     Contact Support
                                 </Button>
                             </Link>
-                            <Link href="/community">
+                            <Link href="https://x.com/FazlulKarim_fk" target="_blank" rel="noopener noreferrer">
                                 <Button variant="outline">
                                     Join Community
                                 </Button>

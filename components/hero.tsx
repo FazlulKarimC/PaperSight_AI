@@ -178,16 +178,16 @@ export function Hero() {
         <div id="upload-section" className="mt-16 mx-auto max-w-4xl">
           <Alert className="mb-4">
             <AlertCircleIcon className="w-4 h-4" color="red" />
-            <AlertDescription className="text-rose-600">
+            <AlertDescription className="text-primary/50">
               Please do not upload images or scanned PDFs. Only text-based PDFs are supported for summarization.
             </AlertDescription>
           </Alert>
 
           {!isSignedIn && (
-            <Alert className="mb-4 bg-blue-500/10 border-blue-500/20">
-              <AlertCircleIcon className="w-4 h-4" color="blue" />
-              <AlertDescription className="text-blue-600 dark:text-blue-400">
-                <strong>Trial Mode:</strong> You can try our service without signing in! Note that summaries won't be saved to your account.
+            <Alert className="mb-4">
+              <AlertCircleIcon className="w-4 h-4" color="red" />
+              <AlertDescription className="text-primary/50">
+                You can try our service without signing in! Note that summaries won't be saved to your account.
               </AlertDescription>
             </Alert>
           )}
