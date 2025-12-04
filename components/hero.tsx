@@ -1,143 +1,65 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertCircleIcon, X } from "lucide-react"
+import { ArrowRight, AlertCircleIcon, CheckCircle2, Upload, FileSearch, Save } from "lucide-react"
 import { DropZone } from "@/components/ui/upload/dropzone"
 import { FilePreview } from "@/components/ui/upload/file-preview"
-import { useUser, SignInButton } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { toast } from "sonner"
-import { useUploadThing } from "@/utils/uploadthing"
-import { summarizePDF, savePDFSummary } from "@/actions/summarizePDF"
-import { formatFileName } from "@/utils/fileNameFormatter"
-import { useRouter } from "next/navigation"
+import { usePDFUpload } from "@/hooks/use-pdf-upload"
+import { ProgressBar } from "@/components/ui/loading/progress-bar"
+import { InlineError } from "@/components/ui/error/error-display"
+import { motion, AnimatePresence } from "framer-motion"
+import { fadeIn, scale } from "@/lib/animations"
 
 export function Hero() {
   const { isSignedIn } = useUser()
-  const router = useRouter()
-  const [file, setFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [validationError, setValidationError] = useState<string | null>(null)
-  const [trialSummary, setTrialSummary] = useState<string | null>(null)
-  const [showTrialModal, setShowTrialModal] = useState(false)
-  const cancelUploadRef = useRef<boolean>(false)
+  const uploadSectionRef = useRef<HTMLDivElement>(null)
 
-  const { startUpload } = useUploadThing("pdfUploader", {
-    onClientUploadComplete: () => {
-      console.log("uploaded successfully!")
-    },
-    onUploadError: (err) => {
-      console.log("error occurred while uploading", err)
-      toast.error("Upload Error", {
-        description: "An error occurred while uploading the file.",
-      })
-    },
-    onUploadBegin: (fileName) => {
-      console.log("upload has begun for", fileName)
-    },
-  })
+  const {
+    file,
+    isUploading,
+    uploadStage,
+    uploadProgress,
+    validationError,
+    uploadError,
+    handleUpload,
+    retryUpload,
+    handleFileSelect,
+    handleError,
+    removeFile,
+  } = usePDFUpload({ isSignedIn: isSignedIn ?? false })
 
   const handleStartClick = () => {
-    document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' })
+    uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile)
-    setValidationError(null)
-  }
-
-  const handleError = (error: string) => {
-    setValidationError(error)
-    setFile(null)
-  }
-
-  const removeFile = () => {
-    setFile(null)
-    setValidationError(null)
-  }
-
-  const handleUpload = async () => {
-    if (!file) return
-
-    setIsUploading(true)
-    cancelUploadRef.current = false
-
-    try {
-      const toastId = toast.loading(`Uploading ${file.name}...`)
-      const response = await startUpload([file])
-
-      if (!response) {
-        toast.error("Upload failed", {
-          description: "An error occurred while uploading the file.",
-          id: toastId,
-        })
-        throw new Error("Upload failed")
-      }
-
-      toast.success(`Upload Successful`, {
-        description: `${file.name} has been uploaded successfully.`,
-        id: toastId,
-      })
-
-      const summaryToastId = toast.loading("Generating Summary", {
-        description: "AI is analyzing your PDF...",
-      })
-
-      const summary = await summarizePDF(response[0]?.url)
-      if (!summary?.success) {
-        toast.error("Summarization Failed", {
-          description: summary?.message || "Failed to summarize PDF",
-          id: summaryToastId,
-        })
-        throw new Error(summary?.message || "Failed to summarize PDF")
-      }
-
-      toast.success(`Summary Generated`, {
-        description: "Your PDF has been summarized successfully!",
-        id: summaryToastId
-      })
-
-      if (isSignedIn) {
-        console.log("Saving summary to database...")
-
-        const savedSummary = await savePDFSummary({
-          fileUrl: response[0].url,
-          summary: summary.data,
-          title: formatFileName(file.name),
-          fileName: file.name,
-        })
-
-        if (!savedSummary?.success) {
-          throw new Error(savedSummary?.message || "Failed to save summary")
-        }
-
-        if (savedSummary.data?.[0]?.id) {
-          router.push(`/summary/${savedSummary.data[0].id}`)
-        }
-      } else {
-        setTrialSummary(summary.data)
-        setShowTrialModal(true)
-        toast.info("Trial Mode", {
-          description: "Sign in to save your summaries permanently!",
-        })
-      }
-
-    } catch (error) {
-      toast.error("Process Failed", {
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-      })
-    } finally {
-      setTimeout(() => {
-        setFile(null)
-        setIsUploading(false)
-      }, 1000)
+  const getStageInfo = () => {
+    switch (uploadStage) {
+      case 'uploading':
+        return { icon: Upload, text: 'Uploading file...', color: 'text-accent' }
+      case 'parsing':
+        return { icon: FileSearch, text: 'Generating summary...', color: 'text-accent' }
+      case 'saving':
+        return { icon: Save, text: isSignedIn ? 'Saving summary...' : 'Preparing summary...', color: 'text-accent' }
+      case 'success':
+        return { icon: CheckCircle2, text: 'Success! Redirecting...', color: 'text-green-500' }
+      case 'error':
+        return { icon: AlertCircleIcon, text: 'Process failed', color: 'text-destructive' }
+      default:
+        return null
     }
   }
 
+  const stageInfo = getStageInfo()
+
   return (
-    <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl text-center">
+    <section className="pt-32 pb-20">
+      {/* Progress bar at top */}
+      {isUploading && <ProgressBar progress={uploadProgress} />}
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-sm text-muted-foreground mb-8">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
@@ -175,7 +97,7 @@ export function Hero() {
           </Button>
         </div>
 
-        <div id="upload-section" className="mt-16 mx-auto max-w-4xl">
+        <div ref={uploadSectionRef} className="mt-16 mx-auto max-w-4xl">
           <Alert className="mb-4">
             <AlertCircleIcon className="w-4 h-4" color="red" />
             <AlertDescription className="text-primary/50">
@@ -207,30 +129,78 @@ export function Hero() {
                 </div>
               )}
 
-              {file && !isUploading && <FilePreview file={file} onRemove={removeFile} />}
+              {file && !isUploading && uploadStage === 'idle' && <FilePreview file={file} onRemove={removeFile} />}
 
-              {isUploading && (
+              {/* Upload Progress with Stage Transitions */}
+              <AnimatePresence mode="wait">
+                {isUploading && stageInfo && (
+                  <motion.div
+                    key={uploadStage}
+                    variants={fadeIn}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={{ duration: 0.3 }}
+                    className="mt-6"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <stageInfo.icon className={`h-5 w-5 ${stageInfo.color} ${uploadStage !== 'success' ? 'animate-pulse' : ''}`} />
+                        <p className="text-sm font-medium text-foreground">{stageInfo.text}</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        className="bg-accent h-2 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {file?.name}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Success Animation */}
+              <AnimatePresence>
+                {uploadStage === 'success' && (
+                  <motion.div
+                    variants={scale}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 className="h-6 w-6 text-green-500" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Upload Complete!</p>
+                        <p className="text-xs text-muted-foreground">Redirecting to your summary...</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Error State with Retry */}
+              {uploadError && uploadStage === 'error' && (
                 <div className="mt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium">Processing {file?.name}</p>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-accent h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
-                  </div>
+                  <InlineError message={uploadError} onRetry={retryUpload} />
                 </div>
               )}
 
-              {file && !isUploading && (
+              {file && !isUploading && uploadStage === 'idle' && (
                 <div className="mt-6 flex justify-end gap-3">
-                  {!isSignedIn && (
-                    <SignInButton mode="modal">
-                      <Button variant="outline">
-                        Sign In to Save
-                      </Button>
-                    </SignInButton>
-                  )}
-                  <Button onClick={handleUpload} disabled={!file || isUploading} className="px-8">
-                    {isSignedIn ? "Upload & Save" : "Try for Free"}
+                  <Button
+                    onClick={handleUpload}
+                    disabled={!file || isUploading}
+                    className="px-8 bg-foreground text-background hover:bg-foreground/90"
+                  >
+                    Upload & Summarize
                   </Button>
                 </div>
               )}
@@ -238,41 +208,6 @@ export function Hero() {
           </div>
         </div>
       </div>
-
-      {showTrialModal && trialSummary && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background border border-border rounded-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">Your Summary (Trial Mode)</h2>
-                <p className="text-sm text-muted-foreground mt-1">Sign in to save this summary permanently</p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowTrialModal(false)
-                  setTrialSummary(null)
-                }}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1">
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <pre className="whitespace-pre-wrap text-foreground">{trialSummary}</pre>
-              </div>
-            </div>
-            <div className="p-6 border-t border-border flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">Want to save this summary?</p>
-              <SignInButton mode="modal">
-                <Button className="bg-foreground text-background hover:bg-foreground/90">
-                  Sign In to Save
-                </Button>
-              </SignInButton>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   )
 }

@@ -14,34 +14,28 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       try {
-
         const { userId } = getAuth(req);
-        if (!userId){
-          console.warn("No userId found, using guest user ID");
+        if (!userId) {
+          // Guest user - use temporary ID for uploads
           return { userId: getGuestUserId() };
         };
         return { userId };
 
-      } catch (err) {
-        console.error("Middleware error:", err);
+      } catch {
         throw new UploadThingError("Authentication failed");
       }
     })
     .onUploadComplete(async ({ metadata, file }) => {
       try {
         if (!metadata?.userId) {
-          console.error("No userId in metadata");
           throw new Error("No userId provided");
         }
-
-        console.log("Upload complete for userId:", metadata.userId);
 
         return {
           uploadedBy: metadata.userId,
           fileurl: file.ufsUrl,
         };
-      } catch (err) {
-        console.error("onUploadComplete error:", err);
+      } catch {
         return {
           uploadedBy: metadata?.userId,
           fileurl: file.ufsUrl,

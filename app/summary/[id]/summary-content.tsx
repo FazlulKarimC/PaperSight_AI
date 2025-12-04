@@ -22,7 +22,7 @@ interface SummaryContentProps {
 export function SummaryContent({ summary }: SummaryContentProps) {
   return (
     <PageTransition>
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link href="/dashboard">
           <Button variant="ghost" className="mb-8 gap-2">

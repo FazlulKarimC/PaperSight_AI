@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
+import Link from "next/link"
 
 const plans = [
   {
@@ -40,15 +41,15 @@ const plans = [
       "Dedicated support",
       "SLA guarantee",
     ],
-    cta: "Contact sales",
+    cta: "Start free trial",
     popular: false,
   },
 ]
 
 export function Pricing() {
   return (
-    <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 border-t border-border">
-      <div className="mx-auto max-w-7xl">
+    <section id="pricing" className="py-24 border-t border-border">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Simple, transparent pricing</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -60,9 +61,8 @@ export function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative rounded-xl border p-8 ${
-                plan.popular ? "border-foreground bg-card" : "border-border bg-card"
-              }`}
+              className={`relative rounded-xl border p-8 ${plan.popular ? "border-foreground bg-card" : "border-border bg-card"
+                }`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -88,16 +88,14 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
+              <Link href="/upload">
+                <Button
+                  className={`w-full ${plan.popular ? "bg-foreground text-background hover:bg-foreground/90" : "bg-secondary text-foreground hover:bg-secondary/80"}`}
+                >
+                  {plan.cta}
+                </Button>
+              </Link>
 
-              <Button
-                className={`w-full ${
-                  plan.popular
-                    ? "bg-foreground text-background hover:bg-foreground/90"
-                    : "bg-secondary text-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {plan.cta}
-              </Button>
             </div>
           ))}
         </div>

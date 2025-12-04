@@ -35,16 +35,22 @@ ${content}`
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
 
-      toast.success("Summary downloaded successfully")
-    } catch (error) {
-      console.error('Error downloading summary:', error)
-      toast.error("Failed to download summary")
+      toast.success("Download Complete", {
+        description: "Summary has been saved to your device."
+      })
+    } catch {
+      toast.error("Download Failed", {
+        description: "Unable to generate download file. Please try again."
+      })
     }
   }
 
   return (
-    <button onClick={handleDownload} className="px-4 py-2 rounded-2xl bg-indigo-100 text-indigo-800 hover:bg-indigo-200 shadow-md transition-color flex items-center justify-center font-semibold text-sm">
-      <Download className="mr-2 h-4 w-4" />
+    <button
+      onClick={handleDownload}
+      className="px-4 py-2.5 rounded-xl bg-secondary text-foreground hover:bg-accent/20 hover:text-accent border border-border hover:border-accent/30 transition-all duration-200 flex items-center justify-center font-medium text-sm gap-2 hover:scale-[1.02]"
+    >
+      <Download className="h-4 w-4" />
       Download Summary
     </button>
   )

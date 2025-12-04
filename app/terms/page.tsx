@@ -8,8 +8,8 @@ export default function TermsPage() {
     return (
         <main className="min-h-screen bg-background">
             <Header />
-            <div className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-4xl">
+            <div className="pt-24 pb-20">
+                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                     <Link href="/">
                         <Button variant="ghost" className="mb-8 gap-2">
                             <ArrowLeft className="h-4 w-4" />

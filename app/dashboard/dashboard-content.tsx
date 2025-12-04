@@ -22,7 +22,7 @@ interface DashboardContentProps {
 export function DashboardContent({ userId }: DashboardContentProps) {
   return (
     <PageTransition>
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-sm text-muted-foreground mb-6">
@@ -55,7 +55,7 @@ export function DashboardContent({ userId }: DashboardContentProps) {
         {!userId && (
           <Alert className="mb-8 border-destructive/50 bg-destructive/10">
             <AlertCircleIcon className="w-4 h-4" color="red" />
-            <AlertDescription className="text-rose-600">
+            <AlertDescription className="text-destructive">
               Log in to unlock your dashboard and access all your past summaries.
             </AlertDescription>
           </Alert>

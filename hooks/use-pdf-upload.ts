@@ -7,11 +7,21 @@ import { useRouter } from "next/navigation"
 
 interface UsePDFUploadOptions {
   onUploadComplete?: () => void
+  isSignedIn?: boolean
 }
 
 export type UploadStage = 'idle' | 'uploading' | 'parsing' | 'saving' | 'success' | 'error'
 
-export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
+export interface TrialSummary {
+  fileUrl: string
+  fileName: string
+  title: string
+  summary: string
+  createdAt: string
+  wordCount: number
+}
+
+export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUploadOptions = {}) {
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStage, setUploadStage] = useState<UploadStage>('idle')
@@ -23,16 +33,15 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
 
   const { startUpload } = useUploadThing("pdfUploader", {
     onClientUploadComplete: () => {
-      console.log("uploaded successfully!")
+      // Upload completed successfully
     },
-    onUploadError: (err) => {
-      console.log("error occurred while uploading", err)
+    onUploadError: () => {
       toast.error("Upload Error", {
         description: "An error occurred while uploading the file.",
       })
     },
-    onUploadBegin: (fileName) => {
-      console.log("upload has begun for", fileName)
+    onUploadBegin: () => {
+      // Upload has begun
     },
   })
 
@@ -49,7 +58,7 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
       // Step 1: Upload file
       const toastId = toast.loading(`Uploading ${file.name}...`)
       setUploadProgress(10)
-      
+
       const response = await startUpload([file])
 
       if (!response) {
@@ -68,48 +77,74 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
 
       // Step 2: Parse PDF
       setUploadStage('parsing')
-      const summaryToastId = toast.loading("Parsing PDF", {
-        description: "Parsing the PDF file...",
+      const summaryToastId = toast.loading("Generating Summary", {
+        description: "AI is analyzing your PDF...",
       })
       setUploadProgress(50)
-      
+
       const summary = await summarizePDF(response[0]?.ufsUrl)
       if (!summary?.success) {
         throw new Error(summary?.message || "Failed to summarize PDF")
       }
 
       setUploadProgress(70)
-      toast.success(`Parse Successful`, {
-        description: "The PDF file has been parsed successfully.",
+      toast.success(`Summary Generated`, {
+        description: "Your PDF has been summarized successfully!",
         id: summaryToastId
       })
 
-      // Step 3: Save to database
-      setUploadStage('saving')
-      console.log("Saving summary to database...")
-      setUploadProgress(80)
+      // Step 3: Save or redirect based on sign-in status
+      if (isSignedIn) {
+        // Logged-in user: save to database
+        setUploadStage('saving')
+        setUploadProgress(80)
 
-      const savedSummary = await savePDFSummary({
-        fileUrl: response[0].ufsUrl,
-        summary: summary.data,
-        title: formatFileName(file.name),
-        fileName: file.name,
-      })
+        const savedSummary = await savePDFSummary({
+          fileUrl: response[0].ufsUrl,
+          summary: summary.data,
+          title: formatFileName(file.name),
+          fileName: file.name,
+        })
 
-      if (!savedSummary?.success) {
-        throw new Error(savedSummary?.message || "Failed to save summary")
-      }
+        if (!savedSummary?.success) {
+          throw new Error(savedSummary?.message || "Failed to save summary")
+        }
 
-      setUploadProgress(100)
-      setUploadStage('success')
-      onUploadComplete?.()
-    
-      // Show success animation before redirect
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Redirect to the summary page
-      if (savedSummary.data?.[0]?.id) {
-        router.push(`/summary/${savedSummary.data[0].id}`)
+        setUploadProgress(100)
+        setUploadStage('success')
+        onUploadComplete?.()
+
+        // Show success animation before redirect
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        // Redirect to the summary page
+        if (savedSummary.data?.[0]?.id) {
+          router.push(`/summary/${savedSummary.data[0].id}`)
+        }
+      } else {
+        // Guest user: store in sessionStorage and redirect to trial page
+        setUploadStage('saving')
+        setUploadProgress(90)
+
+        const trialSummary: TrialSummary = {
+          fileUrl: response[0].ufsUrl,
+          fileName: file.name,
+          title: formatFileName(file.name),
+          summary: summary.data || '',
+          createdAt: new Date().toISOString(),
+          wordCount: (summary.data || '').split(/\s+/).length,
+        }
+
+        sessionStorage.setItem('trialSummary', JSON.stringify(trialSummary))
+
+        setUploadProgress(100)
+        setUploadStage('success')
+        onUploadComplete?.()
+
+        // Show success animation before redirect
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        router.push('/summary/trial')
       }
 
     } catch (error) {

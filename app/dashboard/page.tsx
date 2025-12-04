@@ -16,7 +16,7 @@ export default async function SummariesPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
+      <main className="pt-24 pb-20">
         <DashboardContent userId={userId} />
       </main>
 

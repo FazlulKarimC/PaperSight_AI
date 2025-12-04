@@ -23,8 +23,8 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 border-t border-border">
-      <div className="mx-auto max-w-7xl">
+    <section id="how-it-works" className="py-24 border-t border-border">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">How it works</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">Get from document to summary in three simple steps.</p>
