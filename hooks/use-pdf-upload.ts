@@ -9,10 +9,15 @@ interface UsePDFUploadOptions {
   onUploadComplete?: () => void
 }
 
+export type UploadStage = 'idle' | 'uploading' | 'parsing' | 'saving' | 'success' | 'error'
+
 export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadStage, setUploadStage] = useState<UploadStage>('idle')
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const cancelUploadRef = useRef<boolean>(false)
   const router = useRouter()
 
@@ -35,11 +40,16 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
     if (!file) return
 
     setIsUploading(true)
+    setUploadError(null)
+    setUploadStage('uploading')
+    setUploadProgress(0)
     cancelUploadRef.current = false
 
     try {
       // Step 1: Upload file
       const toastId = toast.loading(`Uploading ${file.name}...`)
+      setUploadProgress(10)
+      
       const response = await startUpload([file])
 
       if (!response) {
@@ -50,29 +60,34 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
         throw new Error("Upload failed")
       }
 
+      setUploadProgress(40)
       toast.success(`Upload Successful`, {
         description: `${file.name} has been uploaded successfully.`,
         id: toastId,
       })
 
       // Step 2: Parse PDF
+      setUploadStage('parsing')
       const summaryToastId = toast.loading("Parsing PDF", {
         description: "Parsing the PDF file...",
       })
+      setUploadProgress(50)
       
       const summary = await summarizePDF(response[0]?.ufsUrl)
       if (!summary?.success) {
         throw new Error(summary?.message || "Failed to summarize PDF")
       }
 
+      setUploadProgress(70)
       toast.success(`Parse Successful`, {
         description: "The PDF file has been parsed successfully.",
         id: summaryToastId
       })
 
       // Step 3: Save to database
-
+      setUploadStage('saving')
       console.log("Saving summary to database...")
+      setUploadProgress(80)
 
       const savedSummary = await savePDFSummary({
         fileUrl: response[0].ufsUrl,
@@ -85,24 +100,45 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
         throw new Error(savedSummary?.message || "Failed to save summary")
       }
 
+      setUploadProgress(100)
+      setUploadStage('success')
       onUploadComplete?.()
     
+      // Show success animation before redirect
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
       // Redirect to the summary page
       if (savedSummary.data?.[0]?.id) {
         router.push(`/summary/${savedSummary.data[0].id}`)
       }
 
     } catch (error) {
+      setUploadStage('error')
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
+      setUploadError(errorMessage)
       toast.error("Process Failed", {
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        description: errorMessage,
       })
     } finally {
-      // Reset form
-      setTimeout(() => {
-        setFile(null)
+      // Don't reset immediately on error so user can retry
+      if (uploadStage !== 'error') {
+        setTimeout(() => {
+          setFile(null)
+          setIsUploading(false)
+          setUploadStage('idle')
+          setUploadProgress(0)
+        }, 1000)
+      } else {
         setIsUploading(false)
-      }, 1000)
+      }
     }
+  }
+
+  const retryUpload = () => {
+    setUploadError(null)
+    setUploadStage('idle')
+    setUploadProgress(0)
+    handleUpload()
   }
 
   const cancelUpload = () => {
@@ -131,9 +167,13 @@ export function usePDFUpload({ onUploadComplete }: UsePDFUploadOptions = {}) {
   return {
     file,
     isUploading,
+    uploadStage,
+    uploadProgress,
     validationError,
+    uploadError,
     handleUpload,
     cancelUpload,
+    retryUpload,
     handleFileSelect,
     handleError,
     removeFile,

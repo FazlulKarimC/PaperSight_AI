@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Geist } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@clerk/nextjs"
+import { ErrorBoundary } from "@/components/ui/error"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -39,7 +41,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${_geist.className} antialiased`}>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+          <Toaster />
           <Analytics />
         </body>
       </html>

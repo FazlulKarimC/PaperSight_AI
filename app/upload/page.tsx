@@ -7,25 +7,57 @@ import { usePDFUpload } from "@/hooks/use-pdf-upload"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { FileText, AlertCircleIcon, ArrowLeft } from "lucide-react"
+import { FileText, AlertCircleIcon, ArrowLeft, CheckCircle2, Upload, FileSearch, Save } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { PageTransition } from "@/components/ui/loading/page-transition"
+import { ProgressBar } from "@/components/ui/loading/progress-bar"
+import { InlineError } from "@/components/ui/error/error-display"
+import { motion, AnimatePresence } from "framer-motion"
+import { fadeIn, scale } from "@/lib/animations"
 
 export default function PdfUploadForm() {
   const {
     file,
     isUploading,
+    uploadStage,
+    uploadProgress,
     validationError,
+    uploadError,
     handleUpload,
+    retryUpload,
     handleFileSelect,
     handleError,
     removeFile,
   } = usePDFUpload()
 
+  const getStageInfo = () => {
+    switch (uploadStage) {
+      case 'uploading':
+        return { icon: Upload, text: 'Uploading file...', color: 'text-accent' }
+      case 'parsing':
+        return { icon: FileSearch, text: 'Parsing PDF...', color: 'text-accent' }
+      case 'saving':
+        return { icon: Save, text: 'Saving summary...', color: 'text-accent' }
+      case 'success':
+        return { icon: CheckCircle2, text: 'Success! Redirecting...', color: 'text-green-500' }
+      case 'error':
+        return { icon: AlertCircleIcon, text: 'Upload failed', color: 'text-destructive' }
+      default:
+        return null
+    }
+  }
+
+  const stageInfo = getStageInfo()
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      
+      {/* Progress bar at top */}
+      {isUploading && <ProgressBar progress={uploadProgress} />}
 
-      <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
+      <PageTransition>
+        <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           {/* Back Button */}
           <Link href="/dashboard">
@@ -77,24 +109,71 @@ export default function PdfUploadForm() {
                 </div>
               )}
 
-              {file && !isUploading && <FilePreview file={file} onRemove={removeFile} />}
+              {file && !isUploading && uploadStage === 'idle' && <FilePreview file={file} onRemove={removeFile} />}
 
-              {isUploading && (
+              {/* Upload Progress with Stage Transitions */}
+              <AnimatePresence mode="wait">
+                {isUploading && stageInfo && (
+                  <motion.div
+                    key={uploadStage}
+                    variants={fadeIn}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={{ duration: 0.3 }}
+                    className="mt-6"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <stageInfo.icon className={`h-5 w-5 ${stageInfo.color} ${uploadStage !== 'success' ? 'animate-pulse' : ''}`} />
+                        <p className="text-sm font-medium text-foreground">{stageInfo.text}</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        className="bg-accent h-2 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {file?.name}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Success Animation */}
+              <AnimatePresence>
+                {uploadStage === 'success' && (
+                  <motion.div
+                    variants={scale}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 className="h-6 w-6 text-green-500" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Upload Complete!</p>
+                        <p className="text-xs text-muted-foreground">Redirecting to your summary...</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Error State with Retry */}
+              {uploadError && uploadStage === 'error' && (
                 <div className="mt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-foreground">Processing {file?.name}</p>
-                    <p className="text-sm text-muted-foreground">Please wait...</p>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className="bg-accent h-2 rounded-full animate-pulse transition-all duration-300" style={{ width: '70%' }}></div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Uploading and analyzing your PDF with AI...
-                  </p>
+                  <InlineError message={uploadError} onRetry={retryUpload} />
                 </div>
               )}
 
-              {file && !isUploading && (
+              {file && !isUploading && uploadStage === 'idle' && (
                 <div className="mt-6 flex justify-end gap-3">
                   <Link href="/dashboard">
                     <Button variant="outline">
@@ -131,6 +210,7 @@ export default function PdfUploadForm() {
           </div>
         </div>
       </main>
+      </PageTransition>
 
       <Footer />
     </div>

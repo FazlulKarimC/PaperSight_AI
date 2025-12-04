@@ -124,3 +124,46 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Toast animations - slide in from top */
+@keyframes toast-slide-in {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+/* Apply animations to toast notifications */
+[data-sonner-toast] {
+  animation: toast-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-sonner-toast][data-removed="true"] {
+  animation: toast-slide-out 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast] {
+    animation: none;
+  }
+  
+  [data-sonner-toast][data-removed="true"] {
+    animation: none;
+  }
+}

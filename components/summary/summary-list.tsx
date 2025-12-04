@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import SummaryListItem from "@/components/summary/summary-list-item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,8 @@ import { useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import type { Summary } from '@/lib/getSummaries'
 import { getGuestUserId } from '@/lib/utils'
+import { staggerContainer } from "@/lib/animations"
+import { SkeletonCard } from "@/components/ui/loading/skeleton-card"
 
 
 
@@ -71,31 +74,36 @@ export default function SummaryList() {
           </a>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {summaries.map((summary) => (
-            <SummaryListItem
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {summaries.map((summary, index) => (
+            <motion.div
               key={summary.id}
-              summary={summary}
-              onDelete={handleDelete}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.3,
+                delay: index * 0.1, // 100ms stagger delay
+                ease: [0.4, 0, 0.2, 1],
+              }}
+            >
+              <SummaryListItem
+                summary={summary}
+                onDelete={handleDelete}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="border rounded-lg p-6 space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <Skeleton className="h-8 w-8 rounded" />
-                  <Skeleton className="h-6 w-40" />
-                </div>
-              </div>
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-6 w-24 rounded-full" />
-            </div>
+            <SkeletonCard key={i} />
           ))}
         </div>
       )}
