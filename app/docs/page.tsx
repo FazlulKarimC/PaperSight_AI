@@ -92,7 +92,7 @@ export default function DocsPage() {
                     <div className="bg-secondary rounded-xl p-8 border border-border">
                         <h2 className="text-2xl font-semibold text-foreground mb-4">Still have questions?</h2>
                         <p className="text-muted-foreground mb-6">
-                            Can't find what you're looking for? Our support team is here to help.
+                            Can&apos;t find what you&apos;re looking for? Our support team is here to help.
                         </p>
                         <div className="flex gap-4">
                             <Link href="mailto:fazlul0127@gmail.com">

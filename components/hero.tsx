@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Upload, AlertCircleIcon, X } from "lucide-react"
+import { ArrowRight, AlertCircleIcon, X } from "lucide-react"
 import { DropZone } from "@/components/ui/upload/dropzone"
 import { FilePreview } from "@/components/ui/upload/file-preview"
 import { useUser, SignInButton } from "@clerk/nextjs"
@@ -169,7 +169,7 @@ export function Hero() {
             size="lg"
             variant="outline"
             className="gap-2 border-border text-foreground hover:bg-secondary bg-transparent"
-            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
           >
             View demo
           </Button>
@@ -187,7 +187,7 @@ export function Hero() {
             <Alert className="mb-4">
               <AlertCircleIcon className="w-4 h-4" color="red" />
               <AlertDescription className="text-primary/50">
-                You can try our service without signing in! Note that summaries won't be saved to your account.
+                You can try our service without signing in! Note that summaries won&apos;t be saved to your account.
               </AlertDescription>
             </Alert>
           )}

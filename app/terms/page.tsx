@@ -66,7 +66,7 @@ export default function TermsPage() {
                                 <li>Upload illegal, harmful, or offensive content</li>
                                 <li>Violate any intellectual property rights</li>
                                 <li>Transmit viruses or malicious code</li>
-                                <li>Interfere with the service's operation</li>
+                                <li>Interfere with the service&apos;s operation</li>
                                 <li>Attempt to gain unauthorized access to our systems</li>
                             </ul>
                         </section>

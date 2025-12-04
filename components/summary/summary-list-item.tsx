@@ -17,7 +17,7 @@ interface SummaryProps {
   onDelete: (id: string) => void
 }
 
-export default function SummaryCard({ summary, onDelete }: SummaryProps) {
+export default function SummaryListItem({ summary, onDelete }: SummaryProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(summary.summary_text)

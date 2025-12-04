@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import SummaryCard from "@/components/ui/summary-card"
+import SummaryListItem from "@/components/summary/summary-list-item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { getSummaries } from "@/lib/getSummaries"
@@ -13,7 +13,7 @@ import { getGuestUserId } from '@/lib/utils'
 
 
 export default function SummaryList() {
-  const { user }  = useUser()
+  const { user } = useUser()
   const [summaries, setSummaries] = useState<Summary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [effectiveUserId, setEffectiveUserId] = useState<string | null>(null)
@@ -56,9 +56,9 @@ export default function SummaryList() {
       {!isLoading && summaries.length === 0 ? (
         <div className="text-center py-12">
           <div className="flex justify-center">
-            <Image 
-              src="/file.svg" 
-              alt="No summaries" 
+            <Image
+              src="/file.svg"
+              alt="No summaries"
               width={96}
               height={96}
               className="opacity-60 mb-4"
@@ -73,9 +73,9 @@ export default function SummaryList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {summaries.map((summary) => (
-            <SummaryCard 
-              key={summary.id} 
-              summary={summary} 
+            <SummaryListItem
+              key={summary.id}
+              summary={summary}
               onDelete={handleDelete}
             />
           ))}

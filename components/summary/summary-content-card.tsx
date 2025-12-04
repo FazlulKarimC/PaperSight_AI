@@ -7,7 +7,7 @@ interface SummaryCardProps {
   summary: Summary
 }
 
-export default function SummaryCard({ summary }: SummaryCardProps) {
+export default function SummaryContentCard({ summary }: SummaryCardProps) {
   return (
     <Card className="bg-indigo-50 w-full shadow-md">
       <CardContent className="pt-6 pb-12">

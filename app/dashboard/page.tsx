@@ -1,4 +1,4 @@
-import SummariesList from "@/components/ui/summary-list"
+import SummariesList from "@/components/summary/summary-list"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Header } from "@/components/header"

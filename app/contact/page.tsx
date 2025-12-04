@@ -21,7 +21,7 @@ export default function ContactPage() {
                         Contact Us
                     </h1>
                     <p className="text-xl text-muted-foreground mb-12">
-                        Get in touch with our team. We'd love to hear from you.
+                        Get in touch with our team. We&apos;d love to hear from you.
                     </p>
 
                     <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -47,7 +47,7 @@ export default function ContactPage() {
                             <h2 className="text-2xl font-semibold text-foreground mb-6">Frequently Asked Questions</h2>
                             <div className="space-y-4">
                                 <div className="border border-border rounded-lg p-4">
-                                    <h3 className="font-semibold text-foreground mb-2">What's your response time?</h3>
+                                    <h3 className="font-semibold text-foreground mb-2">What&apos;s your response time?</h3>
                                     <p className="text-sm text-muted-foreground">
                                         We typically respond to all inquiries within 24 hours during business days.
                                     </p>
@@ -61,7 +61,7 @@ export default function ContactPage() {
                                 <div className="border border-border rounded-lg p-4">
                                     <h3 className="font-semibold text-foreground mb-2">Can I schedule a demo?</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        Yes! We'd be happy to give you a personalized demo. Just mention it in your message.
+                                        Yes! We&apos;d be happy to give you a personalized demo. Just mention it in your message.
                                     </p>
                                 </div>
                             </div>

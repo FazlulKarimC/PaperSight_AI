@@ -23,17 +23,17 @@ export default function AboutPage() {
 
                     <div className="prose prose-lg dark:prose-invert max-w-none">
                         <p className="text-xl text-muted-foreground mb-8">
-                            We're on a mission to make document analysis accessible to everyone through the power of AI.
+                            We&apos;re on a mission to make document analysis accessible to everyone through the power of AI.
                         </p>
 
                         <h2 className="text-2xl font-semibold text-foreground mt-12 mb-4">Our Story</h2>
                         <p className="text-muted-foreground mb-6">
-                            PaperSight AI was founded with a simple vision: to help professionals, researchers, and students save time by instantly extracting key insights from lengthy PDF documents. We understand that in today's fast-paced world, time is precious, and reading through hundreds of pages isn't always feasible.
+                            PaperSight AI was founded with a simple vision: to help professionals, researchers, and students save time by instantly extracting key insights from lengthy PDF documents. We understand that in today&apos;s fast-paced world, time is precious, and reading through hundreds of pages isn&apos;t always feasible.
                         </p>
 
                         <h2 className="text-2xl font-semibold text-foreground mt-12 mb-4">What We Do</h2>
                         <p className="text-muted-foreground mb-6">
-                            Our AI-powered platform analyzes PDF documents and generates concise, accurate summaries that capture the essential information. Whether you're reviewing research papers, legal documents, business reports, or educational materials, PaperSight AI helps you understand the content quickly and efficiently.
+                            Our AI-powered platform analyzes PDF documents and generates concise, accurate summaries that capture the essential information. Whether you&apos;re reviewing research papers, legal documents, business reports, or educational materials, PaperSight AI helps you understand the content quickly and efficiently.
                         </p>
 
                         <h2 className="text-2xl font-semibold text-foreground mt-12 mb-4">Our Technology</h2>
