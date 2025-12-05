@@ -4,7 +4,7 @@ import { UploadIcon } from "lucide-react"
 import { z } from "zod"
 
 // Constants
-const MAX_FILE_SIZE = 8 * 1024 * 1024 // 8MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB (free tier limit)
 const ACCEPTED_FILE_TYPES = ["application/pdf"]
 
 // Validation schema
@@ -12,7 +12,7 @@ const fileSchema = z.object({
   file: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `File size must be less than 8MB.`,
+      message: `File size must be less than 4MB (free tier limit).`,
     })
     .refine((file) => ACCEPTED_FILE_TYPES.includes(file.type), {
       message: "Only PDF files are accepted.",
@@ -63,7 +63,7 @@ export function DropZone({ onFileSelect, onError, disabled }: DropZoneProps) {
           <p className="font-medium">{isDragActive ? "Drop the PDF here" : "Drag & drop your PDF here"}</p>
           <p className="text-sm text-muted-foreground mt-1">or click to browse files</p>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">Only PDF files up to 8MB are accepted</p>
+        <p className="text-xs text-muted-foreground mt-2">Only PDF files up to 4MB are accepted (free tier limit)</p>
       </div>
     </div>
   )
