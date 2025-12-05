@@ -4,7 +4,7 @@ import { UploadIcon } from "lucide-react"
 import { z } from "zod"
 
 // Constants
-const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+const MAX_FILE_SIZE = 8 * 1024 * 1024 // 8MB
 const ACCEPTED_FILE_TYPES = ["application/pdf"]
 
 // Validation schema
@@ -12,7 +12,7 @@ const fileSchema = z.object({
   file: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `File size must be less than 20MB.`,
+      message: `File size must be less than 8MB.`,
     })
     .refine((file) => ACCEPTED_FILE_TYPES.includes(file.type), {
       message: "Only PDF files are accepted.",
@@ -53,9 +53,8 @@ export function DropZone({ onFileSelect, onError, disabled }: DropZoneProps) {
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-        isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20 hover:border-primary/50"
-      } ${disabled ? "pointer-events-none opacity-60" : ""}`}
+      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20 hover:border-primary/50"
+        } ${disabled ? "pointer-events-none opacity-60" : ""}`}
     >
       <input {...getInputProps()} disabled={disabled} />
       <div className="flex flex-col items-center justify-center gap-3">
@@ -64,7 +63,7 @@ export function DropZone({ onFileSelect, onError, disabled }: DropZoneProps) {
           <p className="font-medium">{isDragActive ? "Drop the PDF here" : "Drag & drop your PDF here"}</p>
           <p className="text-sm text-muted-foreground mt-1">or click to browse files</p>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">Only PDF files up to 20MB are accepted</p>
+        <p className="text-xs text-muted-foreground mt-2">Only PDF files up to 8MB are accepted</p>
       </div>
     </div>
   )

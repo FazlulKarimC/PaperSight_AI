@@ -196,7 +196,7 @@ export default function PdfUploadForm() {
             {/* Info Section */}
             <div className="mt-12 grid sm:grid-cols-3 gap-6">
               <div className="text-center p-6 rounded-lg border border-border bg-card/50">
-                <div className="text-3xl font-bold text-accent mb-2">20MB</div>
+                <div className="text-3xl font-bold text-accent mb-2">8MB</div>
                 <p className="text-sm text-muted-foreground">Maximum file size</p>
               </div>
               <div className="text-center p-6 rounded-lg border border-border bg-card/50">

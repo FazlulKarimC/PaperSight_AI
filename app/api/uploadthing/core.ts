@@ -8,7 +8,7 @@ const f = createUploadthing();
 export const ourFileRouter = {
   pdfUploader: f({
     pdf: {
-      maxFileSize: "32MB",
+      maxFileSize: "8MB",
       maxFileCount: 1,
     },
   })

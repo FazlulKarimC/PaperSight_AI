@@ -84,6 +84,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
 
       const summary = await summarizePDF(response[0]?.ufsUrl)
       if (!summary?.success) {
+        toast.dismiss(summaryToastId)
         throw new Error(summary?.message || "Failed to summarize PDF")
       }
 
@@ -151,7 +152,10 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
       setUploadStage('error')
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
       setUploadError(errorMessage)
-      toast.error("Process Failed", {
+
+      // Show specific toast title for scanned/image PDF errors
+      const isUnsupportedPDF = errorMessage.includes("no extractable text") || errorMessage.includes("scanned")
+      toast.error(isUnsupportedPDF ? "Unsupported PDF Format" : "Process Failed", {
         description: errorMessage,
       })
     } finally {
