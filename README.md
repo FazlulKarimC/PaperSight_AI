@@ -1,144 +1,94 @@
-# PaperSight AI
+# PaperSight AI 🚀
 
-![PaperSight AI Logo](public/ps_frontpage.png)
+![PaperSight AI Banner](public/ps_home_page.png)
 
-**PaperSight AI** is an innovative web application designed to simplify the process of summarizing and managing PDF documents using advanced AI technology. Built with Next.js, PaperSight AI leverages the power of Google's Gemini AI model to provide concise summaries of uploaded PDFs, making it an invaluable tool for researchers, students, and professionals who need to quickly extract key information from lengthy documents.
+### *Your intelligent research companion. Summarize PDFs in seconds.*
 
-## Table of Contents
+Welcome to **PaperSight AI**! We're here to make your reading life a whole lot easier. Whether you're a researcher drowning in journals or a student cramming for finals, PaperSight AI uses the magic of Google's Gemini AI to turn those lengthy PDF documents into concise, digestible summaries. It's smart, it's fast, and it looks pretty good doing it.
 
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+---
 
-## Features
+## 🌟 Why PaperSight AI?
 
-- **PDF Upload**: Easily upload PDF documents for summarization through a user-friendly interface.
-- **AI-Powered Summaries**: Utilize Google's Gemini AI to generate detailed summaries of uploaded PDFs, including key points and insights.
-- **Summary Management**: View, download, and delete summaries from a personalized dashboard.
-- **Responsive Design**: Access PaperSight AI from any device with a responsive and intuitive UI.
-- **Secure Storage**: Store and manage your documents and summaries securely.
+We've packed this app with features to help you get to the point, faster.
 
-## Technology Stack
+*   **Smart Summaries**: Upload any PDF, and let our AI agents (powered by Google Gemini) do the heavy lifting. You get the key points, no fluff.
+*   **Unified Upload Experience**: Whether you're on the homepage or the dedicated upload page, the experience is smooth, consistent, and fast.
+*   **Trial Mode**: Just browsing? You can separate the gold from the noise without even logging in. Try it out, generate a summary, and see what we can do.
+*   **Knowledge Base**: Check out our blog for tips, updates, and insights from the PaperSight team.
+*   **Modern & Sleek**: We believe tools should be beautiful. Enjoy a dark-themed, responsive UI built with Tailwind CSS and Framer Motion that feels as good as it looks.
+*   **Secure & Private**: Your documents are yours. We use Clerk for secure authentication and reputable storage solutions to keep your data safe.
 
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, UploadThing for file handling
-- **AI Integration**: Google Gemini API for summarization
-- **Database**: SQL database for storing summary metadata (schema defined in `schema.sql`)
-- **Linting**: ESLint for code quality and consistency
-- **Deployment**: Optimized for Vercel deployment
+## 🛠️ The Tech Stack
 
-## Installation
+We're running on a modern stack to ensure speed, reliability, and developer happiness.
 
-To set up PaperSight AI locally, follow these steps:
+*   **Framework**: [Next.js 16+](https://nextjs.org/) (App Router)
+*   **Language**: TypeScript
+*   **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
+*   **Animations**: [Framer Motion](https://www.framer.com/motion/)
+*   **AI Engine**: [Google Gemini API](https://ai.google.dev/)
+*   **Auth**: [Clerk](https://clerk.com/)
+*   **File Storage**: [UploadThing](https://uploadthing.com/)
+*   **Database**: PostgreSQL (via Neon / Serverless)
+
+## 🚀 Getting Started
+
+Want to run this locally? Let's get you set up.
 
 ### Prerequisites
 
-- Node.js (version 18.x or higher)
-- npm, yarn, pnpm, or bun package manager
-- Git (optional, for cloning the repository)
+*   Node.js 18+
+*   A package manager (npm, pnpm, yarn, or bun)
 
-### Steps
+### Installation
 
-1. **Clone the Repository** (if applicable):
-   ```bash
-   git clone https://github.com/yourusername/papersight_ai.git
-   cd papersight_ai
-   ```
+1.  **Clone the repo:**
+    ```bash
+    git clone https://github.com/FazlulKarimC/PaperSight_AI.git
+    cd papersight_ai
+    ```
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   # or
-   yarn
-   # or
-   pnpm install
-   # or
-   bun install
-   ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    # or pnpm install, yarn, etc.
+    ```
 
-3. **Environment Variables**:
-   Create a `.env.local` file in the root directory and add the necessary environment variables. Refer to the `.env.example` file (if available) or the project documentation for required variables, such as API keys for Gemini AI and database connection strings.
+3.  **Set up environment variables:**
+    Copy `.env.example` to `.env.local` and fill in your keys. You'll need credentials for Clerk, UploadThing, and Google Gemini.
+    ```bash
+    cp .env.example .env.local
+    ```
 
-   Example `.env.local`:
-   ```
-   NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here
-   DATABASE_URL=your_database_connection_string_here
-   UPLOADTHING_SECRET=your_uploadthing_secret_here
-   ```
+4.  **Run it:**
+    ```bash
+    npm run dev
+    ```
 
-4. **Run the Development Server**:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   # or
-   bun dev
-   ```
+    Open [http://localhost:3000](http://localhost:3000) and start summarizing!
 
-5. **Access the Application**:
-   Open [http://localhost:3000](http://localhost:3000) in your browser to see the application running. You can start exploring the features by uploading a PDF document.
+## 📂 Project Structure
 
-## Usage
+Here's a quick tour of how we organized things:
 
-1. **Upload a PDF**:
-   Navigate to the upload page (`/upload`) and use the dropzone to upload a PDF file. The system will process the file and generate a summary using Gemini AI.
+*   `app/`: Main application logic (App Router).
+    *   `dashboard/`: User's saved summaries.
+    *   `upload/`: The dedicated upload zone.
+    *   `blog/`: Our neat little CMS for articles.
+*   `components/`: Reusable UI blocks (Buttons, Cards, Inputs).
+*   `actions/`: Server actions for that sweet, sweet server-side logic.
+*   `lib/` & `utils/`: Helpers, database connections, and AI clients.
+*   `public/`: Where the static assets live.
 
-2. **View Summaries**:
-   Access your dashboard (`/dashboard`) to see a list of all processed summaries. Click on a summary to view detailed content (`/summary/[id]`).
+## 🤝 Contributing
 
-3. **Manage Summaries**:
-   From the dashboard or summary view, you can download summaries as text files or delete them if no longer needed.
+Got an idea? Found a bug? We'd love your help! Use the issue tracker to discuss changes or submit a PR. Let's make this tool even better together.
 
-4. **Explore the UI**:
-   The application features a modern UI with components like navigation menus, cards, and alerts, ensuring a seamless user experience across devices.
+## 📧 Contact
 
-## Project Structure
+Questions or just want to say hi? Drop us a line at `fazlul0127@gmail.com`.
 
-PaperSight AI follows a standard Next.js project structure with additional custom components and utilities:
+---
 
-- **`app/`**: Contains the main application routes and pages.
-  - `page.tsx` (root): Home page with hero section.
-  - `dashboard/page.tsx`: User dashboard for summary management.
-  - `upload/page.tsx`: PDF upload interface.
-  - `summary/[id]/page.tsx`: Detailed view of individual summaries.
-- **`components/`**: Reusable UI components.
-  - `ui/`: Custom UI elements like buttons, cards, and navigation menus.
-  - `hero-section.tsx`: Promotional section on the homepage.
-- **`actions/`**: Server-side logic for summarization.
-  - `summarizePDF.ts`: Handles PDF processing and AI summarization.
-- **`lib/`**: Utility functions and shared code.
-  - `gemini.ts`: Integration with Google Gemini API.
-  - `db.ts`: Database connection and queries.
-- **`public/`**: Static assets like images and icons.
-- **`utils/`**: Helper functions for file formatting and upload handling.
-
-## Contributing
-
-We welcome contributions to PaperSight AI! To contribute, please follow these guidelines:
-
-1. **Fork the Repository**: Create your own fork of the codebase.
-2. **Create a Branch**: Make your changes in a new branch with a descriptive name related to the feature or bug fix.
-3. **Commit Changes**: Follow conventional commit messages (e.g., `feat: add user authentication`, `fix: resolve upload error`).
-4. **Run Tests**: Ensure all tests pass (if applicable) and lint your code with `npm run lint`.
-5. **Submit a Pull Request**: Open a PR with a detailed description of your changes and reference any related issues.
-
-Please adhere to the project's code style and ensure your changes are well-documented. For major changes, open an issue first to discuss the proposed feature or bug fix.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. You are free to use, modify, and distribute this software as per the terms of the license.
-
-## Contact
-
-For questions, feedback, or support, please reach out to the project maintainers:
-
-- **Email**: fazlul0127@gmail.com
-
-Thank you for using PaperSight AI! We hope this tool enhances your productivity by making document summarization effortless and efficient.
+*PaperSight AI - Reading, reimagined.*

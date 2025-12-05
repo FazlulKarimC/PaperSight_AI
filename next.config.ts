@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 import { closeDbConnection } from "./lib/db";
 
 // Handle cleanup on process termination
@@ -27,6 +28,12 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['uploadthing.com'],
   },
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  // Add markdown plugins here, as desired
+});
+
+export default withMDX(nextConfig);
+

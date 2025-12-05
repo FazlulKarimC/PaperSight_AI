@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import SummariesList from "@/components/summary/summary-list";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { AlertCircleIcon, Plus, FileText, Clock, TrendingUp } from "lucide-react";
+import { AlertCircleIcon, Plus, Sparkles, Zap, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageTransition } from "@/components/ui/loading/page-transition";
 import { slideUp, staggerContainer } from "@/lib/animations";
@@ -75,10 +75,10 @@ export function DashboardContent({ userId }: DashboardContentProps) {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <FileText className="h-5 w-5 text-accent" />
+                <Sparkles className="h-5 w-5 text-accent" />
               </div>
-              <div className="text-2xl font-bold text-foreground mb-1">Total Summaries</div>
-              <p className="text-sm text-muted-foreground">All your PDF summaries</p>
+              <div className="text-2xl font-bold text-foreground mb-1">AI Powered</div>
+              <p className="text-sm text-muted-foreground">Advanced summarization</p>
             </div>
           </motion.div>
 
@@ -89,10 +89,10 @@ export function DashboardContent({ userId }: DashboardContentProps) {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <Clock className="h-5 w-5 text-accent" />
+                <Zap className="h-5 w-5 text-accent" />
               </div>
-              <div className="text-2xl font-bold text-foreground mb-1">Recent Activity</div>
-              <p className="text-sm text-muted-foreground">Last 7 days</p>
+              <div className="text-2xl font-bold text-foreground mb-1">Instant Results</div>
+              <p className="text-sm text-muted-foreground">Save hours of reading</p>
             </div>
           </motion.div>
 
@@ -103,10 +103,10 @@ export function DashboardContent({ userId }: DashboardContentProps) {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <TrendingUp className="h-5 w-5 text-accent" />
+                <ShieldCheck className="h-5 w-5 text-accent" />
               </div>
-              <div className="text-2xl font-bold text-foreground mb-1">Time Saved</div>
-              <p className="text-sm text-muted-foreground">Hours of reading</p>
+              <div className="text-2xl font-bold text-foreground mb-1">Secure Storage</div>
+              <p className="text-sm text-muted-foreground">Encrypted & private</p>
             </div>
           </motion.div>
         </motion.div>
