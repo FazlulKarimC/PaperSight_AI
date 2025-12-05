@@ -26,7 +26,12 @@ process.on('unhandledRejection', async (reason, promise) => {
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['uploadthing.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'uploadthing.com',
+      },
+    ],
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
 };
