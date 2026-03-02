@@ -1,0 +1,81 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String    @unique @db.VarChar(255)
+  fullName   String?   @map("full_name") @db.VarChar(255)
+  customerId String?   @unique @map("customer_id") @db.VarChar(255)
+  priceId    String?   @map("price_id") @db.VarChar(255)
+  status     String    @default("inactive") @db.VarChar(50)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  payments   Payment[]
+
+  @@map("users")
+}
+
+model PdfSummary {
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @map("user_id") @db.VarChar(255)
+  originalFileUrl   String         @map("original_file_url")
+  summaryText       String         @map("summary_text")
+  status            String         @default("completed") @db.VarChar(50)
+  title             String?
+  fileName          String?        @map("file_name")
+  summaryStyle      String?        @default("viral") @map("summary_style") @db.VarChar(50)
+  originalWordCount Int?           @map("original_word_count")
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
+  embeddings        PdfEmbedding[]
+  chatMessages      ChatMessage[]
+
+  @@map("pdf_summaries")
+}
+
+model Payment {
+  id              String   @id @default(uuid()) @db.Uuid
+  amount          Int
+  status          String   @db.VarChar(50)
+  stripePaymentId String   @unique @map("stripe_payment_id") @db.VarChar(255)
+  priceId         String   @map("price_id") @db.VarChar(255)
+  userEmail       String   @map("user_email") @db.VarChar(255)
+  user            User     @relation(fields: [userEmail], references: [email])
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("payments")
+}
+
+// Phase 3 tables — created now for schema completeness, used later
+model PdfEmbedding {
+  id         String                     @id @default(uuid()) @db.Uuid
+  summaryId  String                     @map("summary_id") @db.Uuid
+  summary    PdfSummary                 @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  userId     String                     @map("user_id") @db.VarChar(255)
+  chunkText  String                     @map("chunk_text")
+  chunkIndex Int                        @map("chunk_index")
+  embedding  Unsupported("vector(768)")?
+  createdAt  DateTime                   @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("pdf_embeddings")
+}
+
+model ChatMessage {
+  id        String     @id @default(uuid()) @db.Uuid
+  summaryId String     @map("summary_id") @db.Uuid
+  summary   PdfSummary @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  userId    String     @map("user_id") @db.VarChar(255)
+  role      String     @db.VarChar(20)
+  content   String
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@map("chat_messages")
+}

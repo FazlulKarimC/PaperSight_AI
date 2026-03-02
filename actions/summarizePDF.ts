@@ -1,8 +1,8 @@
 "use server"
 
-import { getDbConnection } from "@/lib/db"
 import { generateContentUsingGemini } from "@/lib/gemini"
 import parse from "@/lib/parse"
+import { prisma } from "@/lib/prisma"
 import { getGuestUserId } from "@/lib/utils"
 import { auth } from "@clerk/nextjs/server"
 
@@ -73,7 +73,7 @@ export const summarizePDF = async (fileUrl: string | undefined): Promise<ApiResp
 }
 
 /**
- * Saves a PDF summary to the database
+ * Saves a PDF summary to the database using Prisma
  * @param params - PDFSummary object containing the summary data
  * @returns Promise<ApiResponse> with the saved summary data
  */
@@ -85,8 +85,6 @@ const savePDFSummaryToDatabase = async ({
     fileName,
 }: PDFSummary): Promise<ApiResponse<any>> => {
     try {
-        const sql = await getDbConnection()
-
         if (!userId) {
             return {
                 success: false,
@@ -95,29 +93,29 @@ const savePDFSummaryToDatabase = async ({
             }
         }
 
-        const result = await sql`
-            INSERT INTO pdf_summaries (
-                user_id,
-                original_file_url,
-                summary_text,
-                status,
-                title,
-                file_name
-            ) VALUES (
-                ${userId},
-                ${fileUrl},
-                ${summary},
-                'completed',
-                ${title},
-                ${fileName}
-            )
-            RETURNING *
-        `
+        if (!summary) {
+            return {
+                success: false,
+                message: "Summary is empty",
+                data: null,
+            }
+        }
+
+        const result = await prisma.pdfSummary.create({
+            data: {
+                userId,
+                originalFileUrl: fileUrl ?? "",
+                summaryText: summary,
+                status: "completed",
+                title: title ?? null,
+                fileName: fileName ?? null,
+            },
+        });
 
         return {
             success: true,
             message: "Summary saved successfully",
-            data: result,
+            data: [result],
         }
     } catch (error) {
         console.error("Error in savePDFSummaryToDatabase:", error)
@@ -156,7 +154,7 @@ export const savePDFSummary = async ({
         }
 
         const savedSummary = await savePDFSummaryToDatabase({
-            userId :  effectiveUserId,
+            userId: effectiveUserId,
             fileUrl,
             summary,
             title,

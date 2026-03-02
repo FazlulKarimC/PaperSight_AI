@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
-import { neon } from "@neondatabase/serverless";
+import { prisma } from "@/lib/prisma";
 
 // Use Edge Runtime to bypass serverless 1MB body limit
 export const runtime = "edge";
@@ -35,41 +35,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Connect to database
-        const databaseUrl = process.env.DATABASE_URL;
-        if (!databaseUrl) {
-            return NextResponse.json(
-                { success: false, message: "Database configuration error", data: null },
-                { status: 500 }
-            );
-        }
-
-        const sql = neon(databaseUrl);
-
-        // Save to database
-        const result = await sql`
-      INSERT INTO pdf_summaries (
-        user_id,
-        original_file_url,
-        summary_text,
-        status,
-        title,
-        file_name
-      ) VALUES (
-        ${userId},
-        ${fileUrl},
-        ${summary},
-        'completed',
-        ${title},
-        ${fileName}
-      )
-      RETURNING *
-    `;
+        // Save to database using Prisma
+        const result = await prisma.pdfSummary.create({
+            data: {
+                userId,
+                originalFileUrl: fileUrl,
+                summaryText: summary,
+                status: "completed",
+                title,
+                fileName,
+            },
+        });
 
         return NextResponse.json({
             success: true,
             message: "Summary saved successfully",
-            data: result,
+            data: [result],
         });
 
     } catch (error) {

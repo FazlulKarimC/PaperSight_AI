@@ -8,7 +8,7 @@ export const generateContentUsingGemini = async (pdfText: string) => {
     console.log("Generating summary with Gemini, text length:", pdfText.length);
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: `your role: ${SUMMARY_SYSTEM_PROMPT}\n\n summarize the following pdftext and give response in markdown as per above mentioned format: \n\n${pdfText}`,
       config: {
         temperature: 0.5,
