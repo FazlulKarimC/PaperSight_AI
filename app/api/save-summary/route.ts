@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
-// Use Edge Runtime to bypass serverless 1MB body limit
 export const runtime = "edge";
 
 interface SaveSummaryRequest {
@@ -10,11 +9,12 @@ interface SaveSummaryRequest {
     summary: string;
     title: string;
     fileName: string;
+    summaryStyle?: string;
+    originalWordCount?: number;
 }
 
 export async function POST(req: NextRequest) {
     try {
-        // Authenticate user
         const { userId } = getAuth(req);
 
         if (!userId) {
@@ -24,9 +24,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Parse request body
         const body: SaveSummaryRequest = await req.json();
-        const { fileUrl, summary, title, fileName } = body;
+        const { fileUrl, summary, title, fileName, summaryStyle, originalWordCount } = body;
 
         if (!summary) {
             return NextResponse.json(
@@ -35,7 +34,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Save to database using Prisma
         const result = await prisma.pdfSummary.create({
             data: {
                 userId,
@@ -44,6 +42,8 @@ export async function POST(req: NextRequest) {
                 status: "completed",
                 title,
                 fileName,
+                summaryStyle: summaryStyle ?? "viral",
+                originalWordCount: originalWordCount ?? null,
             },
         });
 

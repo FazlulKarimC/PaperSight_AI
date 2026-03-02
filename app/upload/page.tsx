@@ -12,8 +12,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { PageTransition } from "@/components/ui/loading/page-transition"
 import { ProgressBar } from "@/components/ui/loading/progress-bar"
 import { InlineError } from "@/components/ui/error/error-display"
+import { LoadingSkeleton } from "@/components/summary/loading-skeleton"
 import { motion, AnimatePresence } from "framer-motion"
 import { fadeIn, scale } from "@/lib/animations"
+import { SUMMARY_STYLES } from "@/lib/utils"
 
 export default function PdfUploadForm() {
   const {
@@ -23,6 +25,9 @@ export default function PdfUploadForm() {
     uploadProgress,
     validationError,
     uploadError,
+    summaryStyle,
+    setSummaryStyle,
+    streamingText,
     handleUpload,
     retryUpload,
     handleFileSelect,
@@ -35,7 +40,7 @@ export default function PdfUploadForm() {
       case 'uploading':
         return { icon: Upload, text: 'Uploading file...', color: 'text-accent' }
       case 'parsing':
-        return { icon: FileSearch, text: 'Parsing PDF...', color: 'text-accent' }
+        return { icon: FileSearch, text: 'AI is analyzing your document...', color: 'text-accent' }
       case 'saving':
         return { icon: Save, text: 'Saving summary...', color: 'text-accent' }
       case 'success':
@@ -53,7 +58,6 @@ export default function PdfUploadForm() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Progress bar at top */}
       {isUploading && <ProgressBar progress={uploadProgress} />}
 
       <PageTransition>
@@ -111,9 +115,45 @@ export default function PdfUploadForm() {
 
                 {file && !isUploading && uploadStage === 'idle' && <FilePreview file={file} onRemove={removeFile} />}
 
+                {/* Summary Style Selector */}
+                {file && !isUploading && uploadStage === 'idle' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="mt-6"
+                  >
+                    <label className="block text-sm font-medium text-foreground mb-3">
+                      Summary Style
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {SUMMARY_STYLES.map((style) => (
+                        <button
+                          key={style.value}
+                          type="button"
+                          onClick={() => setSummaryStyle(style.value)}
+                          className={`
+                            relative flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-all duration-200
+                            ${summaryStyle === style.value
+                              ? 'border-accent bg-accent/10 text-accent shadow-sm shadow-accent/20'
+                              : 'border-border bg-secondary/50 text-muted-foreground hover:border-accent/40 hover:bg-accent/5'
+                            }
+                          `}
+                        >
+                          <span className="text-lg">{style.icon}</span>
+                          <span className="font-medium text-xs">{style.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {SUMMARY_STYLES.find(s => s.value === summaryStyle)?.description}
+                    </p>
+                  </motion.div>
+                )}
+
                 {/* Upload Progress with Stage Transitions */}
                 <AnimatePresence mode="wait">
-                  {isUploading && stageInfo && (
+                  {isUploading && stageInfo && uploadStage !== 'parsing' && (
                     <motion.div
                       key={uploadStage}
                       variants={fadeIn}
@@ -141,6 +181,33 @@ export default function PdfUploadForm() {
                       <p className="text-xs text-muted-foreground mt-2">
                         {file?.name}
                       </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Skeleton Loader during AI streaming */}
+                <AnimatePresence>
+                  {uploadStage === 'parsing' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="mt-6"
+                    >
+                      {streamingText ? (
+                        <div className="rounded-xl border border-border bg-card/50 p-6 max-h-64 overflow-y-auto">
+                          <p className="text-xs font-medium text-accent mb-3 flex items-center gap-2">
+                            <FileSearch className="h-3.5 w-3.5 animate-pulse" />
+                            Streaming summary...
+                          </p>
+                          <div className="prose prose-sm prose-invert max-w-none text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">
+                            {streamingText}
+                            <span className="inline-block w-1.5 h-4 bg-accent/60 animate-pulse ml-0.5 align-text-bottom" />
+                          </div>
+                        </div>
+                      ) : (
+                        <LoadingSkeleton />
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -205,7 +272,7 @@ export default function PdfUploadForm() {
               </div>
               <div className="text-center p-6 rounded-lg border border-border bg-card/50">
                 <div className="text-3xl font-bold text-accent mb-2">AI</div>
-                <p className="text-sm text-muted-foreground">Powered by Gemini</p>
+                <p className="text-sm text-muted-foreground">Powered by Gemini 3</p>
               </div>
             </div>
           </div>

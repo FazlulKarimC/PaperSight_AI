@@ -167,3 +167,67 @@
     animation: none;
   }
 }
+
+/* ── Glassmorphism ────────────────────────────────────── */
+.glass {
+  background: oklch(0.12 0 0 / 0.6);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid oklch(0.3 0 0 / 0.3);
+}
+
+.glass-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-hover:hover {
+  background: oklch(0.14 0 0 / 0.7);
+  border-color: oklch(0.7 0.15 180 / 0.3);
+  box-shadow: 0 8px 32px oklch(0.7 0.15 180 / 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── Magnetic Hover (for cards) ───────────────────────── */
+@keyframes magnetic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.7 0.15 180 / 0); }
+  50% { box-shadow: 0 0 20px 2px oklch(0.7 0.15 180 / 0.1); }
+}
+
+.magnetic-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.magnetic-hover:hover {
+  transform: translateY(-3px) scale(1.005);
+  animation: magnetic-pulse 2s ease-in-out infinite;
+}
+
+/* ── Glow accent ──────────────────────────────────────── */
+@keyframes glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.glow-accent {
+  position: relative;
+}
+
+.glow-accent::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, oklch(0.7 0.15 180 / 0.15), transparent 60%);
+  pointer-events: none;
+  animation: glow 3s ease-in-out infinite;
+}
+
+/* ── Resize handle styling ────────────────────────────── */
+[data-panel-resize-handle-id] {
+  transition: background-color 0.2s;
+}
+
+[data-panel-resize-handle-id]:hover,
+[data-panel-resize-handle-id][data-resize-handle-active] {
+  background-color: oklch(0.7 0.15 180 / 0.2) !important;
+}
