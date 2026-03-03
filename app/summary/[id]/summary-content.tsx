@@ -10,6 +10,7 @@ import { fadeIn } from "@/lib/animations";
 import { Summary } from "@/lib/getSummaries";
 import { calculateTimeSaved } from "@/lib/utils";
 import { PdfSplitView } from "@/components/summary/pdf-viewer";
+import { ChatPanel } from "@/components/summary/chat-panel";
 
 interface SummaryContentProps {
   summary: Summary;
@@ -138,6 +139,12 @@ export function SummaryContent({ summary }: SummaryContentProps) {
           summaryCard
         )}
       </div>
+
+      {/* RAG Chat Panel — floating button + slide-up panel */}
+      <ChatPanel
+        summaryId={summary.id}
+        summaryTitle={summary.title || 'Untitled Document'}
+      />
     </PageTransition>
   );
 }

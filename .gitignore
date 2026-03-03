@@ -45,3 +45,6 @@ next-env.d.ts
 INTERVIEW_PROJECT_QA.md
 
 /generated/prisma
+
+.agents
+

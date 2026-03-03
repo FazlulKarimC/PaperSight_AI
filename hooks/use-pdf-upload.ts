@@ -10,7 +10,7 @@ interface UsePDFUploadOptions {
   isSignedIn?: boolean
 }
 
-export type UploadStage = 'idle' | 'uploading' | 'parsing' | 'saving' | 'success' | 'error'
+export type UploadStage = 'idle' | 'uploading' | 'parsing' | 'saving' | 'indexing' | 'success' | 'error'
 
 export interface TrialSummary {
   fileUrl: string
@@ -235,6 +235,24 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
         })
         activeToastRef.current = null
         onUploadComplete?.()
+
+        // Fire-and-forget: trigger background embedding generation for RAG chat
+        // This sends a quick chat request that auto-indexes the document
+        if (savedSummary.data?.[0]?.id) {
+          setUploadStage('indexing')
+          // We don't await this — navigation proceeds immediately
+          fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              summaryId: savedSummary.data[0].id,
+              message: '__index__', // Trigger auto-indexing in the chat API
+              history: [],
+            }),
+          }).catch(() => {
+            // Silently fail — indexing will happen on first chat message
+          })
+        }
 
         await new Promise(resolve => setTimeout(resolve, 1000))
 
