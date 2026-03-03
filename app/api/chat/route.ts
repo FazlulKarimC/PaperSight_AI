@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/prisma";
@@ -65,10 +65,13 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Verify the summary belongs to this user
-        const summary = await prisma.pdfSummary.findFirst({
-            where: { id: summaryId, userId },
-        });
+        // Parallelize DB lookup for summary and embedding generation for the query
+        const [summary, queryEmbedding] = await Promise.all([
+            prisma.pdfSummary.findFirst({
+                where: { id: summaryId, userId },
+            }),
+            generateEmbedding(message)
+        ]);
 
         if (!summary) {
             return new Response(
@@ -87,10 +90,7 @@ export async function POST(req: NextRequest) {
             await storeEmbeddings(summaryId, userId, fullText);
         }
 
-        // 1. Generate embedding for user question
-        const queryEmbedding = await generateEmbedding(message);
-
-        // 2. Retrieve relevant chunks via vector similarity
+        // Retrieve relevant chunks via vector similarity
         const relevantChunks = await searchSimilarChunks(
             summaryId,
             queryEmbedding,
@@ -122,14 +122,16 @@ INSTRUCTIONS:
             parts: [{ text: msg.content }],
         }));
 
-        // Save user message to database
-        await prisma.chatMessage.create({
-            data: {
-                summaryId,
-                userId,
-                role: "user",
-                content: message,
-            },
+        // Save user message non-blocking — does not delay the stream start
+        after(async () => {
+            await prisma.chatMessage.create({
+                data: {
+                    summaryId,
+                    userId,
+                    role: "user",
+                    content: message,
+                },
+            });
         });
 
         // 5. Stream response from Gemini with automatic retry for 503 spikes

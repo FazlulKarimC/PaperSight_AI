@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import SummaryListItem from "@/components/summary/summary-list-item"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { getSummaries } from "@/lib/getSummaries"
 import { useUser } from '@clerk/nextjs'
@@ -12,51 +11,45 @@ import type { Summary } from '@/lib/getSummaries'
 import { getGuestUserId } from '@/lib/utils'
 import { staggerContainer } from "@/lib/animations"
 import { SkeletonCard } from "@/components/ui/loading/skeleton-card"
+import useSWR, { useSWRConfig } from 'swr'
 
 
 
 export default function SummaryList() {
-  const { user } = useUser()
-  const [summaries, setSummaries] = useState<Summary[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [effectiveUserId, setEffectiveUserId] = useState<string | null>(null)
+  const { user, isLoaded } = useUser();
+  const [effectiveUserId, setEffectiveUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isLoaded) return;
     const clerkUserId = user?.id;
     const guestUserId = getGuestUserId();
     setEffectiveUserId(clerkUserId || guestUserId || null);
-  }, [user?.id]);
+  }, [user?.id, isLoaded]);
 
-  useEffect(() => {
-    async function loadSummaries() {
-      if (!effectiveUserId) {
-        setSummaries([]);
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        const newSummaries = await getSummaries(effectiveUserId);
-        if (!newSummaries) {
-          return;
-        }
-        setSummaries(newSummaries);
-      } catch (error) {
-        console.error('Failed to load summaries:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadSummaries();
-  }, [effectiveUserId])
+  const swrKey = effectiveUserId ? `summaries/${effectiveUserId}` : null;
+  const { data: summariesArray, error, isLoading } = useSWR(
+    swrKey,
+    (key: string) => getSummaries(key.split('/')[1])
+  );
 
-  const handleDelete = (deletedId: string) => {
-    setSummaries(current => current.filter(summary => summary.id !== deletedId))
+  const summaries = summariesArray || [];
+
+  // fallback loading state check since we don't have effectiveUserId out of the gate
+  const _isLoading = isLoading || (isLoaded && effectiveUserId && !summariesArray && !error);
+
+  const { mutate } = useSWRConfig();
+  const handleDelete = async (deletedId: string) => {
+    // Optimistic UI update — remove the deleted summary from the local cache
+    await mutate(
+      effectiveUserId ? `summaries/${effectiveUserId}` : null,
+      summaries.filter(summary => summary.id !== deletedId),
+      false // Do not revalidate immediately
+    );
   }
 
   return (
     <div className="relative">
-      {!isLoading && summaries.length === 0 ? (
+      {!_isLoading && summaries.length === 0 ? (
         <div className="text-center py-12">
           <div className="flex justify-center">
             <Image
@@ -100,7 +93,7 @@ export default function SummaryList() {
         </motion.div>
       )}
 
-      {isLoading && (
+      {_isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {[1, 2, 3].map((i) => (
             <SkeletonCard key={i} />

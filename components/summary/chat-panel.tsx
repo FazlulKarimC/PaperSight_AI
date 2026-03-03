@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import useSWR from 'swr';
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,6 @@ import {
     User,
     Loader2,
     Sparkles,
-    ChevronDown,
     Trash2,
 } from "lucide-react";
 
@@ -119,7 +119,6 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
-    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [isIndexing, setIsIndexing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -135,13 +134,25 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // Load chat history on first open
-    useEffect(() => {
-        if (isOpen && !historyLoadedRef.current) {
-            historyLoadedRef.current = true;
-            loadChatHistory();
+    const { isLoading: isLoadingHistory } = useSWR(
+        (isOpen && !historyLoadedRef.current) ? `/api/chat?summaryId=${summaryId}` : null,
+        (url: string) => fetch(url).then(res => res.json()),
+        {
+            onSuccess: (data: { messages?: Array<{ id: string; role: string; content: string; createdAt: string }> }) => {
+                historyLoadedRef.current = true;
+                if (data?.messages) {
+                    setMessages(
+                        data.messages.map((m) => ({
+                            ...m,
+                            role: m.role as "user" | "model",
+                        }))
+                    );
+                }
+            },
+            revalidateOnFocus: false,
+            revalidateIfStale: false
         }
-    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+    );
 
     // Focus input when panel opens
     useEffect(() => {
@@ -150,56 +161,34 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
         }
     }, [isOpen]);
 
-    async function loadChatHistory() {
-        setIsLoadingHistory(true);
-        try {
-            const res = await fetch(`/api/chat?summaryId=${summaryId}`);
-            if (res.ok) {
-                const data = await res.json();
-                setMessages(
-                    data.messages.map((m: { id: string; role: string; content: string; createdAt: string }) => ({
-                        ...m,
-                        role: m.role as "user" | "model",
-                    }))
-                );
-            }
-        } catch (err) {
-            console.error("Failed to load chat history:", err);
-        } finally {
-            setIsLoadingHistory(false);
-        }
-    }
 
-    async function handleSend() {
-        const trimmedInput = input.trim();
-        if (!trimmedInput || isStreaming) return;
 
-        const userMessage: ChatMessage = {
-            id: `user-${Date.now()}`,
-            role: "user",
-            content: trimmedInput,
-        };
+    const handleSend = useCallback(async () => {
+        // Capture messages snapshot functionally to avoid stale closure
+        let historySnapshot: { role: string; content: string }[] = [];
+        setMessages(prev => {
+            historySnapshot = prev.slice(-6).map(m => ({ role: m.role, content: m.content }));
+            return prev;
+        });
 
-        setMessages((prev) => [...prev, userMessage]);
+        // Read input at call time
+        const trimmedInput = inputRef.current?.value?.trim() ?? '';
+        if (!trimmedInput) return;
+        setMessages((prev) => {
+            const trimmed = inputRef.current?.value?.trim() ?? '';
+            if (!trimmed) return prev;
+            return [...prev, { id: `user-${Date.now()}`, role: 'user' as const, content: trimmed }];
+        });
         setInput("");
         setIsStreaming(true);
         setIsIndexing(false);
 
-        // Create placeholder for assistant response
         const assistantId = `assistant-${Date.now()}`;
-        const assistantMessage: ChatMessage = {
-            id: assistantId,
-            role: "model",
-            content: "",
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, { id: assistantId, role: "model" as const, content: "" }]);
 
         try {
-            // Build history for multi-turn context
-            const history = messages.slice(-6).map((m) => ({
-                role: m.role,
-                content: m.content,
-            }));
+            // Use captured history snapshot for multi-turn context
+            const history = historySnapshot;
 
             const res = await fetch("/api/chat", {
                 method: "POST",
@@ -265,7 +254,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
         } finally {
             setIsStreaming(false);
         }
-    }
+    }, [summaryId]);
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -417,7 +406,9 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                             ) : (
                                 <>
                                     {messages.map((msg) => (
-                                        <ChatBubble key={msg.id} message={msg} />
+                                        <div key={msg.id} className="chat-bubble">
+                                            <ChatBubble message={msg} />
+                                        </div>
                                     ))}
                                     {isIndexing && (
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
@@ -490,8 +481,8 @@ function ChatBubble({ message }: { message: ChatMessage }) {
             {/* Avatar */}
             <div
                 className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 mt-0.5 ${isUser
-                        ? "bg-accent/20 text-accent"
-                        : "bg-secondary border border-border/50 text-muted-foreground"
+                    ? "bg-accent/20 text-accent"
+                    : "bg-secondary border border-border/50 text-muted-foreground"
                     }`}
             >
                 {isUser ? (
@@ -504,8 +495,8 @@ function ChatBubble({ message }: { message: ChatMessage }) {
             {/* Message bubble */}
             <div
                 className={`max-w-[80%] rounded-xl px-3.5 py-2.5 ${isUser
-                        ? "bg-accent/15 border border-accent/20 text-foreground"
-                        : "bg-secondary/60 border border-border/30 text-foreground"
+                    ? "bg-accent/15 border border-accent/20 text-foreground"
+                    : "bg-secondary/60 border border-border/30 text-foreground"
                     }`}
             >
                 {isStreaming ? (

@@ -1,4 +1,5 @@
 "use server"
+import { cache } from 'react';
 import { prisma } from "./prisma";
 
 export interface Summary {
@@ -44,7 +45,7 @@ export async function getSummaries(userId: string) {
     }
 }
 
-export async function getSummaryById(id: string): Promise<Summary[] | null> {
+export const getSummaryById = cache(async (id: string): Promise<Summary[] | null> => {
     try {
         const summary = await prisma.pdfSummary.findUnique({
             where: { id },
@@ -72,4 +73,4 @@ export async function getSummaryById(id: string): Promise<Summary[] | null> {
         console.error("Error fetching summary:", error);
         return null;
     }
-}
+});

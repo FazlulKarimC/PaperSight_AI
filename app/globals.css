@@ -231,3 +231,9 @@
 [data-panel-resize-handle-id][data-resize-handle-active] {
   background-color: oklch(0.7 0.15 180 / 0.2) !important;
 }
+
+/* ── Chat bubble — skip off-screen layout/paint (Rule: rendering-content-visibility) ── */
+.chat-bubble {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 64px; /* estimated height; browser adjusts at paint time */
+}

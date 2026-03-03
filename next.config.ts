@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
     ],
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
 };
 
 const withMDX = createMDX({

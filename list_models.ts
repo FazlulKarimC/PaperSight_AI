@@ -6,9 +6,13 @@ async function listModels() {
     try {
         const models = await ai.models.list();
         for await (const model of models) {
-            if (model.name.includes("embed") || model.name.includes("text")) {
-                console.log(`- ${model.name}`);
-                console.log(`  Supported generation methods: ${model.supportedGenerationMethods.join(", ")}`);
+            const name = model.name ?? '';
+            if (name.includes("embed") || name.includes("text")) {
+                console.log(`- ${name}`);
+                const methods = (model as any).supportedGenerationMethods;
+                if (methods) {
+                    console.log(`  Supported generation methods: ${methods.join(", ")}`);
+                }
             }
         }
     } catch (e) {
