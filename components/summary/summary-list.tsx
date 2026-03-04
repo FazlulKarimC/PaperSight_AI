@@ -42,9 +42,6 @@ export default function SummaryList() {
 
   const summaries = summariesArray || [];
 
-  // fallback loading state check since we don't have effectiveUserId out of the gate
-  const _isLoading = isLoading || (isLoaded && effectiveUserId && !summariesArray && !error);
-
   const { mutate } = useSWRConfig();
   const handleDelete = async (deletedId: string) => {
     // Optimistic UI update — remove the deleted summary from the local cache
@@ -57,7 +54,14 @@ export default function SummaryList() {
 
   return (
     <div className="relative">
-      {!_isLoading && summaries.length === 0 ? (
+      {/* Show skeletons while auth or data is loading */}
+      {(!isLoaded || (effectiveUserId && !summariesArray && !error)) ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {[1, 2, 3].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : summaries.length === 0 ? (
         <div className="text-center py-12">
           <div className="flex justify-center">
             <Image
@@ -88,7 +92,7 @@ export default function SummaryList() {
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 duration: 0.3,
-                delay: index * 0.1, // 100ms stagger delay
+                delay: index * 0.1,
                 ease: [0.4, 0, 0.2, 1],
               }}
             >
@@ -99,14 +103,6 @@ export default function SummaryList() {
             </motion.div>
           ))}
         </motion.div>
-      )}
-
-      {_isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {[1, 2, 3].map((i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
       )}
     </div>
   )

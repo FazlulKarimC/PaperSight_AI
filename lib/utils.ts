@@ -16,6 +16,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Counts the number of words in a text string.
+ * Single source of truth — use this instead of inline split/filter calls.
+ */
+export function countWords(text: string): number {
+  return text.split(/\s+/).filter(Boolean).length
+}
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + " bytes"
   else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"

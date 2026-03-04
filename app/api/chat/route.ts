@@ -14,9 +14,6 @@ export const maxDuration = 60;
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Simple in-memory lock to prevent concurrent embedding generation for the same summary
-const indexingInProgress = new Set<string>();
-
 /**
  * POST /api/chat
  *
@@ -65,22 +62,16 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Auto-index: if embeddings don't exist yet, generate them now (with lock)
+        // Auto-index: if embeddings don't exist yet, generate them
+        // hasEmbeddings() hits the DB, so it works correctly across serverless instances
+        // storeEmbeddings() is idempotent (deletes before re-inserting), so a rare
+        // race between two concurrent requests is harmless.
         const indexed = await hasEmbeddings(summaryId);
-        if (!indexed && !indexingInProgress.has(summaryId)) {
-            indexingInProgress.add(summaryId);
-            try {
-                // Combine title + summary text for richer embeddings
-                const fullText = [summary.title, summary.summaryText]
-                    .filter(Boolean)
-                    .join("\n\n");
-                await storeEmbeddings(summaryId, userId, fullText);
-            } finally {
-                indexingInProgress.delete(summaryId);
-            }
-        } else if (indexingInProgress.has(summaryId)) {
-            // Wait briefly for concurrent indexing to finish
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (!indexed) {
+            const fullText = [summary.title, summary.summaryText]
+                .filter(Boolean)
+                .join("\n\n");
+            await storeEmbeddings(summaryId, userId, fullText);
         }
 
         // Retrieve relevant chunks via vector similarity

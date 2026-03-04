@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateGuestId, buildGuestIdCookieHeader } from "@/lib/guest-session";
+import { z } from "zod";
 
 export const runtime = "edge";
 
-interface SaveSummaryRequest {
-    fileUrl: string;
-    summary: string;
-    title: string;
-    fileName: string;
-    summaryStyle?: string;
-    originalWordCount?: number;
-}
+const saveSummarySchema = z.object({
+    fileUrl: z.string().default(""),
+    summary: z.string().min(1, "Summary is required"),
+    title: z.string().default(""),
+    fileName: z.string().default(""),
+    summaryStyle: z.enum(["viral", "concise", "detailed", "bullet-points", "academic"]).default("viral"),
+    originalWordCount: z.number().int().nonnegative().nullable().optional(),
+});
 
 export async function POST(req: NextRequest) {
     try {
@@ -26,15 +27,17 @@ export async function POST(req: NextRequest) {
             userId = guestId;
         }
 
-        const body: SaveSummaryRequest = await req.json();
-        const { fileUrl, summary, title, fileName, summaryStyle, originalWordCount } = body;
+        const rawBody = await req.json();
+        const parseResult = saveSummarySchema.safeParse(rawBody);
 
-        if (!summary) {
+        if (!parseResult.success) {
             return NextResponse.json(
-                { success: false, message: "Summary is required", data: null },
+                { success: false, message: parseResult.error.errors[0]?.message || "Invalid request body", data: null },
                 { status: 400 }
             );
         }
+
+        const { fileUrl, summary, title, fileName, summaryStyle, originalWordCount } = parseResult.data;
 
         const result = await prisma.pdfSummary.create({
             data: {
@@ -44,7 +47,7 @@ export async function POST(req: NextRequest) {
                 status: "completed",
                 title,
                 fileName,
-                summaryStyle: summaryStyle ?? "viral",
+                summaryStyle,
                 originalWordCount: originalWordCount ?? null,
             },
         });

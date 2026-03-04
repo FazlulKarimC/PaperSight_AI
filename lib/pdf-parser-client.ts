@@ -5,6 +5,7 @@
  */
 
 import type * as PdfjsLib from "pdfjs-dist";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
 
 // Lazy loader — only imports pdfjs-dist when actually needed (in the browser)
 let _pdfjs: typeof PdfjsLib | null = null;
@@ -60,7 +61,7 @@ export async function parsePdfInBrowser(file: File): Promise<ParsedPdf> {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
-            .map((item: any) => item.str)
+            .map((item) => (item as TextItem).str)
             .join(" ");
         pages.push(pageText);
     }

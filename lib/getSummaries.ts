@@ -1,6 +1,7 @@
 "use server"
 import { cache } from 'react';
 import { prisma } from "./prisma";
+import { countWords } from "./utils";
 
 export interface Summary {
     id: string
@@ -35,7 +36,7 @@ export async function getSummaries(userId: string) {
             file_name: s.fileName ?? "",
             created_at: s.createdAt.toISOString(),
             updated_at: s.updatedAt.toISOString(),
-            word_count: s.summaryText.split(/\s+/).length,
+            word_count: countWords(s.summaryText),
             summary_style: s.summaryStyle,
             original_word_count: s.originalWordCount,
         })) as Summary[];
@@ -58,7 +59,7 @@ export const getSummaryById = cache(async (id: string, userId?: string): Promise
 
         if (!summary) return null;
 
-        const wordCount = summary.summaryText.split(/\s+/).length;
+        const wordCount = countWords(summary.summaryText);
 
         return {
             id: summary.id,

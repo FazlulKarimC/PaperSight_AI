@@ -44,11 +44,13 @@ async function consumeSummarizeTextStream(
   style: SummaryStyle,
   fileNames: string[],
   onChunk?: (text: string) => void,
+  signal?: AbortSignal,
 ): Promise<{ summary: string; originalWordCount: number }> {
   const res = await fetch("/api/summarize-text", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text, style, fileNames }),
+    signal,
   })
 
   if (!res.ok) {
@@ -74,6 +76,27 @@ async function consumeSummarizeTextStream(
   let summary = ""
   let originalWordCount = 0
 
+  const processEvent = (event: string) => {
+    const line = event.trim()
+    if (!line.startsWith("data: ")) return
+
+    let data;
+    try { data = JSON.parse(line.slice(6)); } catch { return; }
+    switch (data.type) {
+      case "meta":
+        originalWordCount = data.originalWordCount
+        break
+      case "chunk":
+        summary += data.text
+        onChunk?.(summary)
+        break
+      case "error":
+        throw new Error(data.error)
+      case "done":
+        break
+    }
+  }
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -84,25 +107,13 @@ async function consumeSummarizeTextStream(
     buffer = events.pop() ?? ""
 
     for (const event of events) {
-      const line = event.trim()
-      if (!line.startsWith("data: ")) continue
-
-      let data;
-      try { data = JSON.parse(line.slice(6)); } catch { continue; }
-      switch (data.type) {
-        case "meta":
-          originalWordCount = data.originalWordCount
-          break
-        case "chunk":
-          summary += data.text
-          onChunk?.(summary)
-          break
-        case "error":
-          throw new Error(data.error)
-        case "done":
-          break
-      }
+      processEvent(event)
     }
+  }
+
+  // Process any remaining data in the buffer after stream ends
+  if (buffer.trim()) {
+    processEvent(buffer)
   }
 
   if (!summary) throw new Error("No summary received from stream")
@@ -120,6 +131,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
   const [streamingText, setStreamingText] = useState<string>("")
   const [parseProgress, setParseProgress] = useState<string>("")
   const cancelUploadRef = useRef<boolean>(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const activeToastRef = useRef<string | number | null>(null)
   const didErrorRef = useRef<boolean>(false)
   const router = useRouter()
@@ -163,6 +175,8 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
     setStreamingText("")
     setParseProgress("")
     cancelUploadRef.current = false
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
     didErrorRef.current = false
 
     let currentToastId: string | number | null = null
@@ -223,6 +237,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
       activeToastRef.current = null
 
       // ── Step 2: Upload to UploadThing (signed-in only, for storage) ──
+      if (cancelUploadRef.current) throw new Error("Upload cancelled")
       let uploadedFileUrl: string | undefined
       if (isSignedIn && files.length === 1) {
         setUploadStage('uploading')
@@ -249,6 +264,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
       }
 
       // ── Step 3: Stream summary from Gemini ──────────────────────
+      if (cancelUploadRef.current) throw new Error("Upload cancelled")
       setUploadStage('parsing')
       const fileNames = parseResult.parsed.map(p => p.fileName)
       currentToastId = toast.loading("Generating Summary", {
@@ -264,7 +280,8 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
         (partialText) => {
           setStreamingText(partialText)
           setUploadProgress((prev) => Math.min(prev + 0.5, 68))
-        }
+        },
+        abortController.signal,
       )
 
       setUploadProgress(70)
@@ -408,7 +425,14 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
 
   const cancelUpload = () => {
     cancelUploadRef.current = true
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
     setIsUploading(false)
+    setUploadStage('idle')
+    setUploadProgress(0)
+    setStreamingText("")
+    setParseProgress("")
+    dismissActiveToast()
     toast.error("Upload Cancelled", {
       description: "The file upload was cancelled.",
     })

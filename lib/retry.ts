@@ -10,12 +10,14 @@ export async function withRetry<T>(
     for (let i = 0; i < retries; i++) {
         try {
             return await fn();
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errObj = error as { status?: number; toString?: () => string };
+            const errStr = typeof errObj?.toString === "function" ? errObj.toString() : "";
             const isRetryable =
-                error?.status === 503 ||
-                error?.status === 429 ||
-                error?.toString().includes("503") ||
-                error?.toString().includes("UNAVAILABLE");
+                errObj?.status === 503 ||
+                errObj?.status === 429 ||
+                errStr.includes("503") ||
+                errStr.includes("UNAVAILABLE");
             if (!isRetryable || i === retries - 1) throw error;
 
             console.warn(

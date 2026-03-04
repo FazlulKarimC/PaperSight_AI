@@ -1,43 +1,18 @@
 import { NextRequest } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
 import { generateContentStreamUsingGemini, type SummaryStyle } from "@/lib/gemini";
 import parse from "@/lib/parse";
-import { getOrCreateGuestId, buildGuestIdCookieHeader } from "@/lib/guest-session";
-import { checkGuestRateLimit, buildIncrementedUsageCookieHeaderFrom } from "@/lib/guest-rate-limit";
+import { countWords } from "@/lib/utils";
+import { resolveUser } from "@/lib/resolve-user";
+import { createSSEStream, SSE_HEADERS } from "@/lib/sse";
 
 // Use Node.js runtime (not edge) because PDF parsing needs node:module
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-    // Track cookies to set on the response
-    const responseCookies: string[] = [];
-
     try {
-        // Resolve userId: Clerk auth for signed-in users, cookie for guests
-        const { userId: clerkUserId } = getAuth(req);
-        let userId = clerkUserId;
-
-        if (!userId) {
-            // Guest user — check rate limit first
-            const rateLimit = await checkGuestRateLimit();
-            if (!rateLimit.allowed) {
-                return new Response(
-                    JSON.stringify({
-                        error: "Daily limit reached (10/day). Try again tomorrow or sign in for unlimited access!",
-                        code: "RATE_LIMIT_EXCEEDED",
-                    }),
-                    { status: 429, headers: { "Content-Type": "application/json" } }
-                );
-            }
-
-            // Create/retrieve guest ID
-            userId = await getOrCreateGuestId();
-            responseCookies.push(buildGuestIdCookieHeader(userId));
-
-            // Increment usage counter
-            const existingUsage = req.cookies.get("guestUsage")?.value;
-            responseCookies.push(buildIncrementedUsageCookieHeaderFrom(existingUsage));
-        }
+        // Resolve user (Clerk or guest) with rate limiting
+        const userResult = await resolveUser(req);
+        if (userResult instanceof Response) return userResult;
 
         const body = await req.json();
         const { fileUrl, style = "viral" } = body as { fileUrl: string; style?: SummaryStyle };
@@ -58,47 +33,18 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const originalWordCount = pdfText.split(/\s+/).filter(Boolean).length;
+        const originalWordCount = countWords(pdfText);
 
         // Get streaming response from Gemini
         const stream = await generateContentStreamUsingGemini(pdfText, style);
 
-        // Transform into SSE format with metadata header
-        const encoder = new TextEncoder();
-        const sseStream = new ReadableStream({
-            async start(controller) {
-                // Send metadata as first event
-                controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ type: "meta", originalWordCount })}\n\n`)
-                );
-
-                const reader = stream.getReader();
-                try {
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        controller.enqueue(
-                            encoder.encode(`data: ${JSON.stringify({ type: "chunk", text: value })}\n\n`)
-                        );
-                    }
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`));
-                    controller.close();
-                } catch (err) {
-                    const errorMsg = err instanceof Error ? err.message : "Stream error";
-                    controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({ type: "error", error: errorMsg })}\n\n`)
-                    );
-                    controller.close();
-                }
-            },
+        // Create SSE stream with metadata
+        const sseStream = createSSEStream(stream, {
+            metadata: () => ({ originalWordCount }),
         });
 
-        const headers = new Headers({
-            "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
-            Connection: "keep-alive",
-        });
-        for (const cookie of responseCookies) {
+        const headers = new Headers(SSE_HEADERS);
+        for (const cookie of userResult.cookieHeaders) {
             headers.append("Set-Cookie", cookie);
         }
 

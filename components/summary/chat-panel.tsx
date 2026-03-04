@@ -119,7 +119,6 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
-    const [isIndexing, setIsIndexing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -164,39 +163,29 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
 
 
     const handleSend = useCallback(async () => {
-        // Capture messages snapshot functionally to avoid stale closure
+        const trimmedInput = input.trim();
+        if (!trimmedInput) return;
+
+        // Capture messages snapshot for multi-turn context
         let historySnapshot: { role: string; content: string }[] = [];
         setMessages(prev => {
             historySnapshot = prev.slice(-6).map(m => ({ role: m.role, content: m.content }));
-            return prev;
-        });
-
-        // Read input at call time
-        const trimmedInput = inputRef.current?.value?.trim() ?? '';
-        if (!trimmedInput) return;
-        setMessages((prev) => {
-            const trimmed = inputRef.current?.value?.trim() ?? '';
-            if (!trimmed) return prev;
-            return [...prev, { id: `user-${Date.now()}`, role: 'user' as const, content: trimmed }];
+            return [...prev, { id: `user-${Date.now()}`, role: 'user' as const, content: trimmedInput }];
         });
         setInput("");
         setIsStreaming(true);
-        setIsIndexing(false);
 
         const assistantId = `assistant-${Date.now()}`;
         setMessages((prev) => [...prev, { id: assistantId, role: "model" as const, content: "" }]);
 
         try {
-            // Use captured history snapshot for multi-turn context
-            const history = historySnapshot;
-
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     summaryId,
                     message: trimmedInput,
-                    history,
+                    history: historySnapshot,
                 }),
             });
 
@@ -212,6 +201,27 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
             let buffer = "";
             let fullText = "";
 
+            const processEvent = (event: string) => {
+                const line = event.trim();
+                if (!line.startsWith("data: ")) return;
+                let data;
+                try { data = JSON.parse(line.slice(6)); } catch { return; }
+                switch (data.type) {
+                    case "chunk":
+                        fullText += data.text;
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === assistantId ? { ...m, content: fullText } : m
+                            )
+                        );
+                        break;
+                    case "error":
+                        throw new Error(data.error);
+                    case "done":
+                        break;
+                }
+            };
+
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -221,26 +231,13 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                 buffer = events.pop() ?? "";
 
                 for (const event of events) {
-                    const line = event.trim();
-                    if (!line.startsWith("data: ")) continue;
-
-                    let data;
-                    try { data = JSON.parse(line.slice(6)); } catch { continue; }
-                    switch (data.type) {
-                        case "chunk":
-                            fullText += data.text;
-                            setMessages((prev) =>
-                                prev.map((m) =>
-                                    m.id === assistantId ? { ...m, content: fullText } : m
-                                )
-                            );
-                            break;
-                        case "error":
-                            throw new Error(data.error);
-                        case "done":
-                            break;
-                    }
+                    processEvent(event);
                 }
+            }
+
+            // Process any remaining data in the buffer after stream ends
+            if (buffer.trim()) {
+                processEvent(buffer);
             }
         } catch (err) {
             const errorMsg =
@@ -255,7 +252,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
         } finally {
             setIsStreaming(false);
         }
-    }, [summaryId]);
+    }, [input, summaryId]);
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -341,7 +338,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                                         size="icon"
                                         onClick={clearChat}
                                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                        title="Clear chat"
+                                        title="Clear chat view (messages are still saved)"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
@@ -411,12 +408,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                                             <ChatBubble message={msg} />
                                         </div>
                                     ))}
-                                    {isIndexing && (
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
-                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                            Indexing document for the first time…
-                                        </div>
-                                    )}
+
                                 </>
                             )}
                             <div ref={messagesEndRef} />

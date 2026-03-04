@@ -3,7 +3,7 @@
 import { generateContentUsingGemini } from "@/lib/gemini"
 import parse from "@/lib/parse"
 import { prisma } from "@/lib/prisma"
-import { type SummaryStyle } from "@/lib/utils"
+import { type SummaryStyle, countWords } from "@/lib/utils"
 import { auth } from "@clerk/nextjs/server"
 import { getOrCreateGuestId } from "@/lib/guest-session"
 
@@ -41,7 +41,7 @@ export const summarizePDF = async (
             return { success: false, message: "Failed to parse PDF file", data: null }
         }
 
-        const originalWordCount = pdfText.split(/\s+/).filter(Boolean).length
+        const originalWordCount = countWords(pdfText)
 
         const content = await generateContentUsingGemini(pdfText, style)
         if (!content) {

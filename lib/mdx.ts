@@ -1,6 +1,7 @@
 import fs from "fs"
 import path from "path"
 import matter from "gray-matter"
+import { calculateReadingTime, countWords } from "@/lib/utils"
 
 const contentDirectory = path.join(process.cwd(), "content/blog")
 
@@ -19,15 +20,6 @@ export interface BlogPost extends BlogPostMeta {
     content: string
 }
 
-/**
- * Calculate reading time based on word count
- * Average reading speed: 200 words per minute
- */
-function calculateReadingTime(content: string): number {
-    const wordsPerMinute = 200
-    const words = content.trim().split(/\s+/).length
-    return Math.ceil(words / wordsPerMinute)
-}
 
 /**
  * Get all blog post slugs for static generation
@@ -62,7 +54,7 @@ export function getAllPosts(): BlogPostMeta[] {
             author: data.author || "",
             category: data.category || "",
             featuredImage: data.featuredImage || undefined,
-            readingTime: calculateReadingTime(content),
+            readingTime: calculateReadingTime(countWords(content)),
         }
     })
 
@@ -95,7 +87,7 @@ export function getPostBySlug(slug: string): BlogPost | null {
         author: data.author || "",
         category: data.category || "",
         featuredImage: data.featuredImage || undefined,
-        readingTime: calculateReadingTime(content),
+        readingTime: calculateReadingTime(countWords(content)),
         content,
     }
 }
