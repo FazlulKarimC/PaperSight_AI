@@ -292,6 +292,114 @@ body::before {
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px oklch(0.78 0.16 55 / 0.5);
 }
 
+/* ── Animation duration tokens ────────────────────────────── */
+:root {
+  --dur-instant: 80ms;
+  --dur-fast: 150ms;
+  --dur-normal: 250ms;
+  --dur-slow: 400ms;
+}
+
+/* ── Reduced motion — kill all animations and transitions ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Editorial button microinteractions ───────────────────── */
+.btn-editorial {
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur-fast) ease-out, opacity var(--dur-fast) ease-out;
+}
+
+.btn-editorial::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: oklch(1 0 0 / 0.06);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-fast) ease-out;
+  z-index: 0;
+}
+
+.btn-editorial:hover::before {
+  transform: scaleX(1);
+}
+
+.btn-editorial:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* ── RAG status badge ─────────────────────────────────────── */
+.rag-badge {
+  font-family: "Geist Mono", monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid oklch(0.78 0.16 55 / 0.3);
+  color: oklch(0.78 0.16 55);
+  background: oklch(0.78 0.16 55 / 0.08);
+}
+
+/* ── Source citation cards ────────────────────────────────── */
+.source-card {
+  border-left: 2px solid oklch(0.78 0.16 55 / 0.4);
+  background: oklch(0.16 0.008 260);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  transition: border-color var(--dur-fast) ease-out, background var(--dur-fast) ease-out;
+}
+
+.source-card:hover {
+  border-left-color: oklch(0.78 0.16 55 / 0.7);
+  background: oklch(0.18 0.008 260);
+}
+
+/* Stagger-reveal for source cards */
+.source-card-enter {
+  animation: source-fade-in var(--dur-normal) ease-out both;
+}
+
+@keyframes source-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Streaming cursor ─────────────────────────────────────── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 1.5px;
+  height: 1em;
+  background: oklch(0.78 0.16 55 / 0.8);
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: cursor-blink 0.8s ease-in-out infinite;
+}
+
 /* ── Prose enhancements for reading views ─────────────────── */
 .prose-editorial {
   --tw-prose-body: var(--foreground);

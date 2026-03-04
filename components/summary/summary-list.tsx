@@ -6,7 +6,7 @@ import SummaryListItem from "@/components/summary/summary-list-item"
 import { Button } from "@/components/ui/button"
 import { getSummaries } from "@/lib/getSummaries"
 import { useUser } from '@clerk/nextjs'
-import Image from 'next/image'
+import { FileText } from 'lucide-react'
 import type { Summary } from '@/lib/getSummaries'
 import { GUEST_COOKIE_NAME, GUEST_PREFIX } from "@/lib/guest-constants"
 import { staggerContainer } from "@/lib/animations"
@@ -62,20 +62,14 @@ export default function SummaryList() {
           ))}
         </div>
       ) : summaries.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="flex justify-center">
-            <Image
-              src="/file.svg"
-              alt="No summaries"
-              width={96}
-              height={96}
-              className="opacity-60 mb-4"
-            />
+        <div className="text-center py-16">
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mx-auto mb-6">
+            <FileText className="h-8 w-8 text-accent" />
           </div>
-          <h3 className="text-xl font-semibold mb-2 text-secondary">No summaries yet</h3>
-          <p className="text-muted mb-6">Upload a PDF to get started with your first summary</p>
+          <h3 className="heading-display text-2xl text-foreground mb-3">No summaries yet</h3>
+          <p className="text-muted-foreground mb-8 max-w-sm mx-auto">Upload a PDF to get started with your first AI-powered summary.</p>
           <a href="/upload">
-            <Button>Create Your First Summary</Button>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 font-medium px-8">Create Your First Summary</Button>
           </a>
         </div>
       ) : (

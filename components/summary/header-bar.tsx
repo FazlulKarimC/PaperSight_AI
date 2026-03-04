@@ -44,7 +44,7 @@ export default function HeaderBar({ title, date, readTime, source, originalfileu
 
       {/* Title section */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground tracking-tight">{title}</h1>
+        <h1 className="heading-display text-3xl text-foreground">{title}</h1>
       </div>
 
       {/* Source and actions */}

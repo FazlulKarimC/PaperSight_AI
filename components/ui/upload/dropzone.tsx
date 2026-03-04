@@ -62,16 +62,16 @@ export function DropZone({ onFilesSelect, onError, disabled, currentFileCount = 
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20 hover:border-primary/50"
+      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${isDragActive ? "border-accent bg-accent/5 surface-sunken" : "border-muted-foreground/20 hover:border-accent/50"
         } ${disabled ? "pointer-events-none opacity-60" : ""}`}
     >
       <input {...getInputProps()} disabled={disabled} />
       <div className="flex flex-col items-center justify-center gap-3">
-        <UploadIcon className="h-10 w-10 text-muted-foreground" />
+        <UploadIcon className={`h-10 w-10 transition-colors duration-200 ${isDragActive ? "text-accent" : "text-muted-foreground"}`} />
         <div>
           <p className="font-medium">
             {isDragActive
-              ? "Drop the PDFs here"
+              ? "Drop to upload"
               : currentFileCount > 0
                 ? `Add more PDFs (${currentFileCount}/${MAX_FILE_COUNT})`
                 : "Drag & drop up to 5 PDFs here"}

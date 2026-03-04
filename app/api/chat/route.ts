@@ -141,6 +141,18 @@ INSTRUCTIONS:
         const sseStream = new ReadableStream({
             async start(controller) {
                 try {
+                    // Emit retrieved sources so the frontend can display citation cards
+                    const sourcesPayload = relevantChunks.map((c, i) => ({
+                        chunkText: c.chunkText,
+                        chunkIndex: c.chunkIndex,
+                        similarity: Math.round(c.similarity * 100) / 100,
+                    }));
+                    controller.enqueue(
+                        encoder.encode(
+                            `data: ${JSON.stringify({ type: "sources", sources: sourcesPayload })}\n\n`
+                        )
+                    );
+
                     for await (const chunk of response) {
                         const text = chunk.text;
                         if (text) {

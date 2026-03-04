@@ -2,18 +2,18 @@ import { Brain, Zap, Shield, FileSearch, Languages, MessageSquare } from "lucide
 
 const capabilities = [
   {
-    icon: Brain,
-    title: "AI-Powered Analysis",
-    description:
-      "Advanced language models understand context and extract the most relevant information from your documents.",
-    span: "lg:col-span-2",
-  },
-  {
     icon: MessageSquare,
     title: "Chat with PDFs",
     description:
-      "Ask follow-up questions grounded in the document content using RAG-powered chat.",
-    span: "",
+      "Ask follow-up questions and get answers grounded directly in your document content using RAG-powered conversational AI.",
+    span: "lg:col-span-2",
+  },
+  {
+    icon: Brain,
+    title: "RAG-Powered Analysis",
+    description:
+      "Retrieval-Augmented Generation embeds your document into a vector store, retrieves the most relevant passages, and generates grounded responses — no hallucination.",
+    span: "lg:col-span-2",
   },
   {
     icon: Zap,
@@ -56,7 +56,7 @@ export function Features() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {capabilities.map((cap) => (
             <div
               key={cap.title}
