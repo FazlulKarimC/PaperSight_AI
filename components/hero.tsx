@@ -2,7 +2,7 @@
 
 import { useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertCircleIcon, CheckCircle2, Upload, FileSearch, Save } from "lucide-react"
+import { ArrowRight, AlertCircleIcon, CheckCircle2, Upload, FileSearch, Save, ScanText } from "lucide-react"
 import { DropZone } from "@/components/ui/upload/dropzone"
 import { FilePreview } from "@/components/ui/upload/file-preview"
 import { useUser } from "@clerk/nextjs"
@@ -18,15 +18,16 @@ export function Hero() {
   const uploadSectionRef = useRef<HTMLDivElement>(null)
 
   const {
-    file,
+    files,
     isUploading,
     uploadStage,
     uploadProgress,
     validationError,
     uploadError,
+    parseProgress,
     handleUpload,
     retryUpload,
-    handleFileSelect,
+    handleFilesSelect,
     handleError,
     removeFile,
   } = usePDFUpload({ isSignedIn: isSignedIn ?? false })
@@ -37,8 +38,10 @@ export function Hero() {
 
   const getStageInfo = () => {
     switch (uploadStage) {
+      case 'parsing-client':
+        return { icon: ScanText, text: parseProgress || 'Extracting text from PDFs...', color: 'text-accent' }
       case 'uploading':
-        return { icon: Upload, text: 'Uploading file...', color: 'text-accent' }
+        return { icon: Upload, text: 'Storing file...', color: 'text-accent' }
       case 'parsing':
         return { icon: FileSearch, text: 'Generating summary...', color: 'text-accent' }
       case 'saving':
@@ -118,9 +121,10 @@ export function Hero() {
             <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent"></div>
             <div className="relative">
               <DropZone
-                onFileSelect={handleFileSelect}
+                onFilesSelect={handleFilesSelect}
                 onError={handleError}
-                disabled={!!file || isUploading}
+                disabled={isUploading}
+                currentFileCount={files.length}
               />
 
               {validationError && (
@@ -129,7 +133,7 @@ export function Hero() {
                 </div>
               )}
 
-              {file && !isUploading && uploadStage === 'idle' && <FilePreview file={file} onRemove={removeFile} />}
+              {files.length > 0 && !isUploading && uploadStage === 'idle' && <FilePreview files={files} onRemoveFile={removeFile} />}
 
               {/* Upload Progress with Stage Transitions */}
               <AnimatePresence mode="wait">
@@ -159,7 +163,7 @@ export function Hero() {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {file?.name}
+                      {files.length === 1 ? files[0]?.name : `${files.length} PDFs`}
                     </p>
                   </motion.div>
                 )}
@@ -193,14 +197,14 @@ export function Hero() {
                 </div>
               )}
 
-              {file && !isUploading && uploadStage === 'idle' && (
+              {files.length > 0 && !isUploading && uploadStage === 'idle' && (
                 <div className="mt-6 flex justify-end gap-3">
                   <Button
                     onClick={handleUpload}
-                    disabled={!file || isUploading}
+                    disabled={files.length === 0 || isUploading}
                     className="px-8 bg-foreground text-background hover:bg-foreground/90"
                   >
-                    Upload & Summarize
+                    {files.length > 1 ? `Summarize ${files.length} PDFs` : "Upload & Summarize"}
                   </Button>
                 </div>
               )}

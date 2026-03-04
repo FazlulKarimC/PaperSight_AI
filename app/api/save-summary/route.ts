@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { getOrCreateGuestId, buildGuestIdCookieHeader } from "@/lib/guest-session";
 
 export const runtime = "edge";
 
@@ -15,13 +16,14 @@ interface SaveSummaryRequest {
 
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = getAuth(req);
+        // Resolve userId: Clerk auth for signed-in users, cookie for guests
+        const { userId: clerkUserId } = getAuth(req);
+        let userId = clerkUserId;
+        let guestId: string | null = null;
 
         if (!userId) {
-            return NextResponse.json(
-                { success: false, message: "User not authenticated", data: null },
-                { status: 401 }
-            );
+            guestId = await getOrCreateGuestId();
+            userId = guestId;
         }
 
         const body: SaveSummaryRequest = await req.json();
@@ -47,11 +49,18 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
             message: "Summary saved successfully",
             data: [result],
         });
+
+        // Set guestId cookie so the guest can access their summary later
+        if (guestId) {
+            response.headers.append("Set-Cookie", buildGuestIdCookieHeader(guestId));
+        }
+
+        return response;
 
     } catch (error) {
         console.error("Error saving summary:", error);

@@ -1,7 +1,7 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { getAuth } from "@clerk/nextjs/server";
-import { getGuestUserId } from "@/lib/utils";
+import { getOrCreateGuestId } from "@/lib/guest-session";
 
 const f = createUploadthing();
 
@@ -16,8 +16,9 @@ export const ourFileRouter = {
       try {
         const { userId } = getAuth(req);
         if (!userId) {
-          // Guest user - use temporary ID for uploads
-          return { userId: getGuestUserId() };
+          // Guest user - use cookie-based persistent ID
+          const guestId = await getOrCreateGuestId();
+          return { userId: guestId };
         };
         return { userId };
 

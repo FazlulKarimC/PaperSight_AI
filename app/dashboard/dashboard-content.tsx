@@ -51,82 +51,36 @@ export function DashboardContent({ userId }: DashboardContentProps) {
           </div>
         </div>
 
-        {/* Alert for non-logged in users */}
+        {/* Guest landing state */}
         {!userId && (
-          <Alert className="mb-8 border-destructive/50 bg-destructive/10">
-            <AlertCircleIcon className="w-4 h-4" color="red" />
-            <AlertDescription className="text-destructive">
-              Log in to unlock your dashboard and access all your past summaries.
-            </AlertDescription>
-          </Alert>
+          <div className="mb-8 rounded-xl border border-border bg-card p-8 text-center">
+            <AlertCircleIcon className="w-8 h-8 text-accent mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Sign in to access your Dashboard</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Your saved summaries, reading history, and chat sessions are available when you sign in.
+              You can still <Link href="/upload" className="text-accent hover:underline">try a free summary</Link> without an account!
+            </p>
+          </div>
         )}
 
-        {/* Stats Cards with stagger animation from bottom */}
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12"
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-        >
-          <motion.div
-            variants={slideUp}
-            className="relative rounded-xl border border-border bg-card p-6 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
+        {/* Summaries List Section — only for authenticated users */}
+        {userId && (
+          <div className="relative rounded-xl border border-border bg-card p-8">
+            <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
             <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Sparkles className="h-5 w-5 text-accent" />
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Your Summaries</h2>
+                <Link href="/upload">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Upload PDF
+                  </Button>
+                </Link>
               </div>
-              <div className="text-2xl font-bold text-foreground mb-1">AI Powered</div>
-              <p className="text-sm text-muted-foreground">Advanced summarization</p>
+              <SummariesList />
             </div>
-          </motion.div>
-
-          <motion.div
-            variants={slideUp}
-            className="relative rounded-xl border border-border bg-card p-6 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Zap className="h-5 w-5 text-accent" />
-              </div>
-              <div className="text-2xl font-bold text-foreground mb-1">Instant Results</div>
-              <p className="text-sm text-muted-foreground">Save hours of reading</p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={slideUp}
-            className="relative rounded-xl border border-border bg-card p-6 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <ShieldCheck className="h-5 w-5 text-accent" />
-              </div>
-              <div className="text-2xl font-bold text-foreground mb-1">Secure Storage</div>
-              <p className="text-sm text-muted-foreground">Encrypted & private</p>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Summaries List Section */}
-        <div className="relative rounded-xl border border-border bg-card p-8">
-          <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
-          <div className="relative">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Your Summaries</h2>
-              <Link href="/upload">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Upload PDF
-                </Button>
-              </Link>
-            </div>
-            <SummariesList />
           </div>
-        </div>
+        )}
       </div>
     </PageTransition>
   );

@@ -4,24 +4,27 @@ import { useUploadThing } from "@/utils/uploadthing"
 import { formatFileName } from "@/utils/fileNameFormatter"
 import { useRouter } from "next/navigation"
 import type { SummaryStyle } from "@/lib/utils"
+import { checkGuestQuotaClient } from "@/lib/guest-rate-limit-client"
+import {
+  parsePdfsInBrowser,
+  checkContextLimit,
+  type BatchParseResult,
+} from "@/lib/pdf-parser-client"
 
 interface UsePDFUploadOptions {
   onUploadComplete?: () => void
   isSignedIn?: boolean
 }
 
-export type UploadStage = 'idle' | 'uploading' | 'parsing' | 'saving' | 'indexing' | 'success' | 'error'
-
-export interface TrialSummary {
-  fileUrl: string
-  fileName: string
-  title: string
-  summary: string
-  createdAt: string
-  wordCount: number
-  originalWordCount: number
-  summaryStyle: SummaryStyle
-}
+export type UploadStage =
+  | 'idle'
+  | 'parsing-client'  // NEW: client-side PDF text extraction
+  | 'uploading'
+  | 'parsing'          // AI summarization
+  | 'saving'
+  | 'indexing'
+  | 'success'
+  | 'error'
 
 // Helper to create a timeout promise
 const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> => {
@@ -34,21 +37,32 @@ const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, errorMessage: st
 }
 
 /**
- * Reads the /api/summarize SSE stream and returns accumulated summary + metadata
+ * Reads the /api/summarize-text SSE stream and returns accumulated summary + metadata
  */
-async function consumeSummarizeStream(
-  fileUrl: string,
+async function consumeSummarizeTextStream(
+  text: string,
   style: SummaryStyle,
+  fileNames: string[],
   onChunk?: (text: string) => void,
 ): Promise<{ summary: string; originalWordCount: number }> {
-  const res = await fetch("/api/summarize", {
+  const res = await fetch("/api/summarize-text", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fileUrl, style }),
+    body: JSON.stringify({ text, style, fileNames }),
   })
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({ error: "Unknown error" }))
+    if (res.status === 429) {
+      const err = new Error(errorBody.error || "Rate limit exceeded");
+      (err as any).code = "RATE_LIMIT_EXCEEDED";
+      throw err;
+    }
+    if (res.status === 413) {
+      const err = new Error(errorBody.error || "Content too large");
+      (err as any).code = "CONTEXT_TOO_LARGE";
+      throw err;
+    }
     throw new Error(errorBody.error || `Server error: ${res.status}`)
   }
 
@@ -66,9 +80,8 @@ async function consumeSummarizeStream(
 
     buffer += decoder.decode(value, { stream: true })
 
-    // Process complete SSE events (each ends with \n\n)
     const events = buffer.split("\n\n")
-    buffer = events.pop() ?? "" // keep incomplete event in buffer
+    buffer = events.pop() ?? ""
 
     for (const event of events) {
       const line = event.trim()
@@ -96,7 +109,7 @@ async function consumeSummarizeStream(
 }
 
 export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUploadOptions = {}) {
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStage, setUploadStage] = useState<UploadStage>('idle')
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -104,6 +117,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [summaryStyle, setSummaryStyle] = useState<SummaryStyle>('viral')
   const [streamingText, setStreamingText] = useState<string>("")
+  const [parseProgress, setParseProgress] = useState<string>("")
   const cancelUploadRef = useRef<boolean>(false)
   const activeToastRef = useRef<string | number | null>(null)
   const router = useRouter()
@@ -126,109 +140,182 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
   }
 
   const handleUpload = async () => {
-    if (!file) return
+    if (files.length === 0) return
+
+    // Guest rate limit check
+    if (!isSignedIn) {
+      const quota = checkGuestQuotaClient()
+      if (!quota.allowed) {
+        toast.error("Daily limit reached", {
+          description: "You've used all 10 free summaries today. Try again tomorrow or sign in for unlimited access!",
+          duration: 6000,
+        })
+        return
+      }
+    }
 
     setIsUploading(true)
     setUploadError(null)
-    setUploadStage('uploading')
+    setUploadStage('parsing-client')
     setUploadProgress(0)
     setStreamingText("")
+    setParseProgress("")
     cancelUploadRef.current = false
 
     let currentToastId: string | number | null = null
 
     try {
-      // Step 1: Upload file to storage
-      currentToastId = toast.loading(`Uploading ${file.name}...`)
+      // ── Step 1: Client-side PDF text extraction ────────────────
+      currentToastId = toast.loading(`Extracting text from ${files.length} PDF${files.length !== 1 ? "s" : ""}...`)
       activeToastRef.current = currentToastId
-      setUploadProgress(10)
+      setUploadProgress(5)
 
-      const response = await withTimeout(
-        startUpload([file]),
-        60000,
-        "Upload timed out. Please try again with a smaller file."
+      const parseResult: BatchParseResult = await parsePdfsInBrowser(
+        files,
+        (parsed, total) => {
+          setParseProgress(`Parsed ${parsed}/${total} PDFs...`)
+          setUploadProgress(Math.round((parsed / total) * 20))
+        }
       )
 
-      if (!response) {
-        toast.error("Upload failed", {
-          description: "An error occurred while uploading the file.",
+      // Report per-file parse errors
+      if (parseResult.errors.length > 0) {
+        for (const err of parseResult.errors) {
+          toast.error(`Failed: ${err.fileName}`, {
+            description: err.error,
+            duration: 5000,
+          })
+        }
+      }
+
+      // Check if we have any successfully parsed files
+      if (parseResult.parsed.length === 0) {
+        toast.error("No PDFs could be parsed", {
+          description: "None of the uploaded PDFs contain extractable text.",
           id: currentToastId,
         })
         activeToastRef.current = null
-        throw new Error("Upload failed")
+        throw new Error("No extractable text found in any PDF")
       }
 
-      setUploadProgress(40)
-      toast.success(`Upload Successful`, {
-        description: `${file.name} has been uploaded successfully.`,
+      // Check combined context limit
+      const contextError = checkContextLimit(parseResult)
+      if (contextError) {
+        toast.error("Content too large", {
+          description: contextError,
+          id: currentToastId,
+          duration: 6000,
+        })
+        activeToastRef.current = null
+        const err = new Error(contextError);
+        (err as any).code = "CONTEXT_TOO_LARGE";
+        throw err;
+      }
+
+      setUploadProgress(25)
+      toast.success("Text extracted", {
+        description: `${parseResult.parsed.length} PDF${parseResult.parsed.length !== 1 ? "s" : ""} (${parseResult.totalWordCount.toLocaleString()} words, ${parseResult.totalPageCount} pages)`,
         id: currentToastId,
       })
       activeToastRef.current = null
 
-      const uploadedFileUrl = response[0]?.ufsUrl
-      if (!uploadedFileUrl) throw new Error("No file URL returned from upload")
+      // ── Step 2: Upload to UploadThing (signed-in only, for storage) ──
+      let uploadedFileUrl: string | undefined
+      if (isSignedIn && files.length === 1) {
+        setUploadStage('uploading')
+        currentToastId = toast.loading(`Storing PDF for later access...`)
+        activeToastRef.current = currentToastId
+        setUploadProgress(30)
 
-      // Step 2: Stream summary from /api/summarize (SSE)
+        try {
+          const response = await withTimeout(
+            startUpload([files[0]]),
+            60000,
+            "File storage timed out."
+          )
+          uploadedFileUrl = response?.[0]?.ufsUrl
+          toast.success("File stored", { id: currentToastId })
+        } catch {
+          // Non-blocking: PDF storage failure shouldn't stop summarization
+          toast.warning("File storage skipped", {
+            description: "Summary will still be generated. Original PDF won't be available for viewing later.",
+            id: currentToastId,
+          })
+        }
+        activeToastRef.current = null
+      }
+
+      // ── Step 3: Stream summary from Gemini ──────────────────────
       setUploadStage('parsing')
+      const fileNames = parseResult.parsed.map(p => p.fileName)
       currentToastId = toast.loading("Generating Summary", {
-        description: `Streaming ${summaryStyle} style summary...`,
+        description: `Streaming ${summaryStyle} style summary${fileNames.length > 1 ? ` from ${fileNames.length} PDFs` : ""}...`,
       })
       activeToastRef.current = currentToastId
-      setUploadProgress(50)
+      setUploadProgress(40)
 
-      const { summary, originalWordCount } = await consumeSummarizeStream(
-        uploadedFileUrl,
+      const { summary, originalWordCount } = await consumeSummarizeTextStream(
+        parseResult.combinedText,
         summaryStyle,
+        fileNames,
         (partialText) => {
           setStreamingText(partialText)
-          // Smoothly increment progress during streaming
           setUploadProgress((prev) => Math.min(prev + 0.5, 68))
         }
       )
 
       setUploadProgress(70)
-      toast.success(`Summary Generated`, {
-        description: "Your PDF has been summarized successfully!",
+      toast.success("Summary Generated", {
+        description: `${fileNames.length > 1 ? `Combined summary from ${fileNames.length} PDFs` : "Your PDF has been summarized"} successfully!`,
         id: currentToastId,
       })
       activeToastRef.current = null
 
-      // Step 3: Save or redirect
-      if (isSignedIn) {
-        setUploadStage('saving')
-        currentToastId = toast.loading("Saving Summary", {
-          description: "Storing your summary...",
-        })
-        activeToastRef.current = currentToastId
-        setUploadProgress(80)
+      // ── Step 4: Save summary ────────────────────────────────────
+      setUploadStage('saving')
+      currentToastId = toast.loading("Saving Summary", {
+        description: "Storing your summary...",
+      })
+      activeToastRef.current = currentToastId
+      setUploadProgress(80)
 
-        const saveResponse = await withTimeout(
-          fetch('/api/save-summary', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fileUrl: uploadedFileUrl,
-              summary,
-              title: formatFileName(file.name),
-              fileName: file.name,
-              summaryStyle,
-              originalWordCount,
-            }),
+      const combinedTitle = fileNames.length > 1
+        ? `Combined: ${fileNames.map(n => formatFileName(n)).join(", ")}`
+        : formatFileName(fileNames[0])
+
+      const combinedFileName = fileNames.length > 1
+        ? fileNames.join(" + ")
+        : fileNames[0]
+
+      const saveResponse = await withTimeout(
+        fetch('/api/save-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileUrl: uploadedFileUrl || "",
+            summary,
+            title: combinedTitle,
+            fileName: combinedFileName,
+            summaryStyle,
+            originalWordCount,
           }),
-          30000,
-          "Failed to save summary. Please try again."
-        )
+        }),
+        30000,
+        "Failed to save summary. Please try again."
+      )
 
-        const savedSummary = await saveResponse.json()
+      const savedSummary = await saveResponse.json()
 
-        if (!savedSummary?.success) {
-          toast.dismiss(currentToastId)
-          activeToastRef.current = null
-          throw new Error(savedSummary?.message || "Failed to save summary")
-        }
+      if (!savedSummary?.success) {
+        toast.dismiss(currentToastId)
+        activeToastRef.current = null
+        throw new Error(savedSummary?.message || "Failed to save summary")
+      }
 
-        setUploadProgress(100)
-        setUploadStage('success')
+      setUploadProgress(100)
+      setUploadStage('success')
+
+      if (isSignedIn) {
         toast.success("Summary Saved", {
           description: "Your summary has been saved successfully!",
           id: currentToastId,
@@ -236,53 +323,33 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
         activeToastRef.current = null
         onUploadComplete?.()
 
-        // Fire-and-forget: trigger background embedding generation for RAG chat
-        // This sends a quick chat request that auto-indexes the document
+        // Fire-and-forget: trigger embedding generation
         if (savedSummary.data?.[0]?.id) {
           setUploadStage('indexing')
-          // We don't await this — navigation proceeds immediately
           fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               summaryId: savedSummary.data[0].id,
-              message: '__index__', // Trigger auto-indexing in the chat API
+              message: '__index__',
               history: [],
             }),
-          }).catch(() => {
-            // Silently fail — indexing will happen on first chat message
-          })
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        if (savedSummary.data?.[0]?.id) {
-          router.push(`/summary/${savedSummary.data[0].id}`)
+          }).catch(() => { })
         }
       } else {
-        // Guest user: store in sessionStorage
-        setUploadStage('saving')
-        setUploadProgress(90)
-
-        const trialSummary: TrialSummary = {
-          fileUrl: uploadedFileUrl,
-          fileName: file.name,
-          title: formatFileName(file.name),
-          summary,
-          createdAt: new Date().toISOString(),
-          wordCount: summary.split(/\s+/).length,
-          originalWordCount,
-          summaryStyle,
-        }
-
-        sessionStorage.setItem('trialSummary', JSON.stringify(trialSummary))
-
-        setUploadProgress(100)
-        setUploadStage('success')
+        toast.success("Summary Generated!", {
+          description: "Sign in to save summaries permanently and chat with your PDFs.",
+          id: currentToastId,
+          duration: 5000,
+        })
+        activeToastRef.current = null
         onUploadComplete?.()
+      }
 
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        router.push('/summary/trial')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      if (savedSummary.data?.[0]?.id) {
+        router.push(`/summary/${savedSummary.data[0].id}`)
       }
 
     } catch (error) {
@@ -293,22 +360,32 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
 
       const isUnsupportedPDF = errorMessage.includes("no extractable text") || errorMessage.includes("scanned")
       const isTimeout = errorMessage.includes("timed out") || errorMessage.includes("timeout")
-      const isRateLimit = errorMessage.includes("rate limit") || errorMessage.includes("quota")
+      const isRateLimit = errorMessage.includes("rate limit") || errorMessage.includes("quota") || (error as any)?.code === "RATE_LIMIT_EXCEEDED"
+      const isContextTooLarge = (error as any)?.code === "CONTEXT_TOO_LARGE"
 
-      toast.error(
-        isUnsupportedPDF ? "Unsupported PDF Format" :
-          isTimeout ? "Request Timeout" :
-            isRateLimit ? "Rate Limit Reached" : "Process Failed",
-        { description: errorMessage }
-      )
+      if (!isContextTooLarge) {
+        // Context errors are already toasted above
+        toast.error(
+          isUnsupportedPDF ? "Unsupported PDF Format" :
+            isTimeout ? "Request Timeout" :
+              isRateLimit ? "Daily Limit Reached" : "Process Failed",
+          {
+            description: isRateLimit
+              ? "You've used all 10 free summaries today. Try again tomorrow or sign in for unlimited access!"
+              : errorMessage,
+            duration: isRateLimit ? 6000 : undefined,
+          }
+        )
+      }
     } finally {
       if (uploadStage !== 'error') {
         setTimeout(() => {
-          setFile(null)
+          setFiles([])
           setIsUploading(false)
           setUploadStage('idle')
           setUploadProgress(0)
           setStreamingText("")
+          setParseProgress("")
         }, 1000)
       } else {
         setIsUploading(false)
@@ -321,6 +398,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
     setUploadStage('idle')
     setUploadProgress(0)
     setStreamingText("")
+    setParseProgress("")
     handleUpload()
   }
 
@@ -332,23 +410,27 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
     })
   }
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile)
+  const handleFilesSelect = (selectedFiles: File[]) => {
+    setFiles(prev => [...prev, ...selectedFiles])
     setValidationError(null)
   }
 
   const handleError = (error: string) => {
     setValidationError(error)
-    setFile(null)
   }
 
-  const removeFile = () => {
-    setFile(null)
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index))
+    setValidationError(null)
+  }
+
+  const clearFiles = () => {
+    setFiles([])
     setValidationError(null)
   }
 
   return {
-    file,
+    files,
     isUploading,
     uploadStage,
     uploadProgress,
@@ -357,11 +439,13 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
     summaryStyle,
     setSummaryStyle,
     streamingText,
+    parseProgress,
     handleUpload,
     cancelUpload,
     retryUpload,
-    handleFileSelect,
+    handleFilesSelect,
     handleError,
     removeFile,
+    clearFiles,
   }
 }

@@ -1,15 +1,25 @@
 import { NextRequest } from "next/server";
 import { getAuth } from "@clerk/nextjs/server";
 import { generateContentStreamUsingGemini, type SummaryStyle } from "@/lib/gemini";
-import parse from "@/lib/parse";
 import { getOrCreateGuestId, buildGuestIdCookieHeader } from "@/lib/guest-session";
 import { checkGuestRateLimit, buildIncrementedUsageCookieHeaderFrom } from "@/lib/guest-rate-limit";
 
-// Use Node.js runtime (not edge) because PDF parsing needs node:module
+/**
+ * POST /api/summarize-text
+ *
+ * Accepts pre-parsed text (from client-side PDF extraction) and streams a Gemini summary.
+ * Supports both single and batch (multi-PDF) summaries.
+ *
+ * Body: { text: string, style?: SummaryStyle, fileNames?: string[] }
+ */
+
 export const maxDuration = 60;
 
+// Limits
+const MAX_TEXT_CHARS = 500_000; // ~100k words
+const MAX_TEXT_WORDS = 100_000;
+
 export async function POST(req: NextRequest) {
-    // Track cookies to set on the response
     const responseCookies: string[] = [];
 
     try {
@@ -18,7 +28,7 @@ export async function POST(req: NextRequest) {
         let userId = clerkUserId;
 
         if (!userId) {
-            // Guest user — check rate limit first
+            // Guest user — rate limit check
             const rateLimit = await checkGuestRateLimit();
             if (!rateLimit.allowed) {
                 return new Response(
@@ -30,46 +40,57 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            // Create/retrieve guest ID
             userId = await getOrCreateGuestId();
             responseCookies.push(buildGuestIdCookieHeader(userId));
 
-            // Increment usage counter
             const existingUsage = req.cookies.get("guestUsage")?.value;
             responseCookies.push(buildIncrementedUsageCookieHeaderFrom(existingUsage));
         }
 
         const body = await req.json();
-        const { fileUrl, style = "viral" } = body as { fileUrl: string; style?: SummaryStyle };
+        const { text, style = "viral", fileNames = [] } = body as {
+            text: string;
+            style?: SummaryStyle;
+            fileNames?: string[];
+        };
 
-        if (!fileUrl) {
+        if (!text || text.trim().length === 0) {
             return new Response(
-                JSON.stringify({ error: "File URL is required" }),
+                JSON.stringify({ error: "No text content provided. The PDFs may contain only images or scanned pages." }),
                 { status: 400, headers: { "Content-Type": "application/json" } }
             );
         }
 
-        // Parse PDF text
-        const pdfText = await parse(fileUrl);
-        if (!pdfText) {
+        // Validate text size
+        const wordCount = text.split(/\s+/).filter(Boolean).length;
+
+        if (text.length > MAX_TEXT_CHARS || wordCount > MAX_TEXT_WORDS) {
             return new Response(
-                JSON.stringify({ error: "Failed to parse PDF" }),
-                { status: 422, headers: { "Content-Type": "application/json" } }
+                JSON.stringify({
+                    error: `Combined PDF text is too large (${wordCount.toLocaleString()} words). Maximum is ${MAX_TEXT_WORDS.toLocaleString()} words for the free tier. Try with fewer or smaller PDFs.`,
+                    code: "CONTEXT_TOO_LARGE",
+                }),
+                { status: 413, headers: { "Content-Type": "application/json" } }
             );
         }
 
-        const originalWordCount = pdfText.split(/\s+/).filter(Boolean).length;
+        const originalWordCount = wordCount;
 
-        // Get streaming response from Gemini
-        const stream = await generateContentStreamUsingGemini(pdfText, style);
+        // Build prompt with file context if multiple files
+        let promptText = text;
+        if (fileNames.length > 1) {
+            promptText = `The following text is extracted from ${fileNames.length} PDF documents: ${fileNames.join(", ")}. Please create a unified summary covering all documents.\n\n${text}`;
+        }
 
-        // Transform into SSE format with metadata header
+        // Stream Gemini summary
+        const stream = await generateContentStreamUsingGemini(promptText, style);
+
         const encoder = new TextEncoder();
         const sseStream = new ReadableStream({
             async start(controller) {
-                // Send metadata as first event
+                // Send metadata
                 controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ type: "meta", originalWordCount })}\n\n`)
+                    encoder.encode(`data: ${JSON.stringify({ type: "meta", originalWordCount, fileCount: fileNames.length })}\n\n`)
                 );
 
                 const reader = stream.getReader();
@@ -104,7 +125,7 @@ export async function POST(req: NextRequest) {
 
         return new Response(sseStream, { headers });
     } catch (error) {
-        console.error("Error in summarize stream:", error);
+        console.error("Error in summarize-text stream:", error);
         const msg = error instanceof Error ? error.message : "An unexpected error occurred";
         return new Response(
             JSON.stringify({ error: msg }),

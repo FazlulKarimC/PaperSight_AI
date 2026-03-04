@@ -4,19 +4,21 @@ import { motion } from 'framer-motion';
 import CheatsheetViewer from "@/components/summary/cheatsheet-viewer";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, FileText, Link as LinkIcon, Zap, TrendingDown } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, FileText, Link as LinkIcon, Zap, TrendingDown, MessageSquare } from "lucide-react";
 import { PageTransition } from "@/components/ui/loading/page-transition";
 import { fadeIn } from "@/lib/animations";
 import { Summary } from "@/lib/getSummaries";
 import { calculateTimeSaved } from "@/lib/utils";
 import { PdfSplitView } from "@/components/summary/pdf-viewer";
 import { ChatPanel } from "@/components/summary/chat-panel";
+import { useUser, SignInButton } from "@clerk/nextjs";
 
 interface SummaryContentProps {
   summary: Summary;
 }
 
 export function SummaryContent({ summary }: SummaryContentProps) {
+  const { isSignedIn } = useUser();
   const timeSaved = summary.original_word_count
     ? calculateTimeSaved(summary.original_word_count, summary.word_count)
     : null;
@@ -40,10 +42,10 @@ export function SummaryContent({ summary }: SummaryContentProps) {
     <PageTransition>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
-        <Link href="/dashboard">
+        <Link href={isSignedIn ? "/dashboard" : "/"}>
           <Button variant="ghost" className="mb-8 gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+            {isSignedIn ? "Back to Dashboard" : "Back to Home"}
           </Button>
         </Link>
 
@@ -140,11 +142,27 @@ export function SummaryContent({ summary }: SummaryContentProps) {
         )}
       </div>
 
-      {/* RAG Chat Panel — floating button + slide-up panel */}
-      <ChatPanel
-        summaryId={summary.id}
-        summaryTitle={summary.title || 'Untitled Document'}
-      />
+      {/* RAG Chat Panel — only for signed-in users */}
+      {isSignedIn ? (
+        <ChatPanel
+          summaryId={summary.id}
+          summaryTitle={summary.title || 'Untitled Document'}
+        />
+      ) : (
+        <motion.div
+          className="fixed bottom-6 right-6 z-40"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <SignInButton mode="modal">
+            <button className="flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background shadow-lg hover:bg-foreground/90 transition-colors">
+              <MessageSquare className="h-4 w-4" />
+              Sign in to chat with this PDF
+            </button>
+          </SignInButton>
+        </motion.div>
+      )}
     </PageTransition>
   );
 }

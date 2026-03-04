@@ -7,7 +7,7 @@ import { usePDFUpload } from "@/hooks/use-pdf-upload"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { FileText, AlertCircleIcon, ArrowLeft, CheckCircle2, Upload, FileSearch, Save } from "lucide-react"
+import { FileText, AlertCircleIcon, ArrowLeft, CheckCircle2, Upload, FileSearch, Save, ScanText } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { PageTransition } from "@/components/ui/loading/page-transition"
 import { ProgressBar } from "@/components/ui/loading/progress-bar"
@@ -16,10 +16,13 @@ import { LoadingSkeleton } from "@/components/summary/loading-skeleton"
 import { motion, AnimatePresence } from "framer-motion"
 import { fadeIn, scale } from "@/lib/animations"
 import { SUMMARY_STYLES } from "@/lib/utils"
+import { useUser } from "@clerk/nextjs"
+import { MAX_FILE_COUNT } from "@/lib/pdf-parser-client"
 
 export default function PdfUploadForm() {
+  const { isSignedIn } = useUser()
   const {
-    file,
+    files,
     isUploading,
     uploadStage,
     uploadProgress,
@@ -28,17 +31,21 @@ export default function PdfUploadForm() {
     summaryStyle,
     setSummaryStyle,
     streamingText,
+    parseProgress,
     handleUpload,
     retryUpload,
-    handleFileSelect,
+    handleFilesSelect,
     handleError,
     removeFile,
-  } = usePDFUpload()
+    clearFiles,
+  } = usePDFUpload({ isSignedIn: !!isSignedIn })
 
   const getStageInfo = () => {
     switch (uploadStage) {
+      case 'parsing-client':
+        return { icon: ScanText, text: parseProgress || 'Extracting text from PDFs...', color: 'text-accent' }
       case 'uploading':
-        return { icon: Upload, text: 'Uploading file...', color: 'text-accent' }
+        return { icon: Upload, text: 'Storing file...', color: 'text-accent' }
       case 'parsing':
         return { icon: FileSearch, text: 'AI is analyzing your document...', color: 'text-accent' }
       case 'saving':
@@ -53,6 +60,8 @@ export default function PdfUploadForm() {
   }
 
   const stageInfo = getStageInfo()
+  const hasFiles = files.length > 0
+  const canAddMore = files.length < MAX_FILE_COUNT
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,10 +73,10 @@ export default function PdfUploadForm() {
         <main className="pt-24 pb-20">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             {/* Back Button */}
-            <Link href="/dashboard">
+            <Link href={isSignedIn ? "/dashboard" : "/"}>
               <Button variant="ghost" className="mb-8 gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
+                {isSignedIn ? "Back to Dashboard" : "Back to Home"}
               </Button>
             </Link>
 
@@ -82,10 +91,11 @@ export default function PdfUploadForm() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-4">
-                Upload Your PDF
+                Upload Your PDFs
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Transform lengthy documents into clear, actionable summaries in seconds
+                Upload up to {MAX_FILE_COUNT} PDFs at once for a combined summary,
+                or a single PDF for a focused analysis
               </p>
             </div>
 
@@ -101,11 +111,15 @@ export default function PdfUploadForm() {
             <div className="relative rounded-xl border border-border bg-card p-8 sm:p-12">
               <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent"></div>
               <div className="relative">
-                <DropZone
-                  onFileSelect={handleFileSelect}
-                  onError={handleError}
-                  disabled={!!file || isUploading}
-                />
+                {/* Dropzone — show when no files yet or can add more, and not uploading */}
+                {(!hasFiles || canAddMore) && !isUploading && uploadStage === 'idle' && (
+                  <DropZone
+                    onFilesSelect={handleFilesSelect}
+                    onError={handleError}
+                    disabled={isUploading}
+                    currentFileCount={files.length}
+                  />
+                )}
 
                 {validationError && (
                   <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
@@ -113,10 +127,13 @@ export default function PdfUploadForm() {
                   </div>
                 )}
 
-                {file && !isUploading && uploadStage === 'idle' && <FilePreview file={file} onRemove={removeFile} />}
+                {/* File List Preview */}
+                {hasFiles && !isUploading && uploadStage === 'idle' && (
+                  <FilePreview files={files} onRemoveFile={removeFile} />
+                )}
 
                 {/* Summary Style Selector */}
-                {file && !isUploading && uploadStage === 'idle' && (
+                {hasFiles && !isUploading && uploadStage === 'idle' && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -179,7 +196,7 @@ export default function PdfUploadForm() {
                         />
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {file?.name}
+                        {files.length === 1 ? files[0]?.name : `${files.length} PDFs`}
                       </p>
                     </motion.div>
                   )}
@@ -198,7 +215,7 @@ export default function PdfUploadForm() {
                         <div className="rounded-xl border border-border bg-card/50 p-6 max-h-64 overflow-y-auto">
                           <p className="text-xs font-medium text-accent mb-3 flex items-center gap-2">
                             <FileSearch className="h-3.5 w-3.5 animate-pulse" />
-                            Streaming summary...
+                            Streaming summary{files.length > 1 ? ` from ${files.length} PDFs` : ""}...
                           </p>
                           <div className="prose prose-sm prose-invert max-w-none text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">
                             {streamingText}
@@ -240,20 +257,24 @@ export default function PdfUploadForm() {
                   </div>
                 )}
 
-                {file && !isUploading && uploadStage === 'idle' && (
+                {/* Action Buttons */}
+                {hasFiles && !isUploading && uploadStage === 'idle' && (
                   <div className="mt-6 flex justify-end gap-3">
-                    <Link href="/dashboard">
+                    <Button variant="outline" onClick={clearFiles}>
+                      Clear All
+                    </Button>
+                    <Link href={isSignedIn ? "/dashboard" : "/"}>
                       <Button variant="outline">
                         <FileText className="w-4 h-4 mr-2" />
-                        View All Summaries
+                        {isSignedIn ? "View All Summaries" : "Back to Home"}
                       </Button>
                     </Link>
                     <Button
                       onClick={handleUpload}
-                      disabled={!file || isUploading}
+                      disabled={!hasFiles || isUploading}
                       className="px-8 bg-foreground text-background hover:bg-foreground/90"
                     >
-                      Upload & Summarize
+                      {files.length > 1 ? `Summarize ${files.length} PDFs` : "Upload & Summarize"}
                     </Button>
                   </div>
                 )}
@@ -263,12 +284,12 @@ export default function PdfUploadForm() {
             {/* Info Section */}
             <div className="mt-12 grid sm:grid-cols-3 gap-6">
               <div className="text-center p-6 rounded-lg border border-border bg-card/50">
-                <div className="text-3xl font-bold text-accent mb-2">4MB</div>
-                <p className="text-sm text-muted-foreground">Max file size (free tier)</p>
+                <div className="text-3xl font-bold text-accent mb-2">16MB</div>
+                <p className="text-sm text-muted-foreground">Max per file</p>
               </div>
               <div className="text-center p-6 rounded-lg border border-border bg-card/50">
-                <div className="text-3xl font-bold text-accent mb-2">~30s</div>
-                <p className="text-sm text-muted-foreground">Average processing time</p>
+                <div className="text-3xl font-bold text-accent mb-2">{MAX_FILE_COUNT}</div>
+                <p className="text-sm text-muted-foreground">PDFs per batch</p>
               </div>
               <div className="text-center p-6 rounded-lg border border-border bg-card/50">
                 <div className="text-3xl font-bold text-accent mb-2">AI</div>

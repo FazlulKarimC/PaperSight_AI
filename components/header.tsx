@@ -38,20 +38,22 @@ export function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                Dashboard
-              </Button>
-            </Link>
+            {isSignedIn && (
+              <Link href="/dashboard">
+                <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+                  Dashboard
+                </Button>
+              </Link>
+            )}
             {!isSignedIn ? (
               <>
-                <SignInButton mode="modal">
+                <Link href="/upload">
                   <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                    Log in
+                    Try Free
                   </Button>
-                </SignInButton>
+                </Link>
                 <SignInButton mode="modal">
-                  <Button className="bg-foreground text-background hover:bg-foreground/90">Get Started</Button>
+                  <Button className="bg-foreground text-background hover:bg-foreground/90">Sign in</Button>
                 </SignInButton>
               </>
             ) : (
@@ -85,20 +87,22 @@ export function Header() {
                 Documentation
               </Link>
               <div className="flex flex-col gap-2 pt-4">
-                <Link href="/dashboard">
-                  <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                    Dashboard
-                  </Button>
-                </Link>
+                {isSignedIn && (
+                  <Link href="/dashboard">
+                    <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
                 {!isSignedIn ? (
                   <>
-                    <SignInButton mode="modal">
+                    <Link href="/upload">
                       <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-                        Log in
+                        Try Free
                       </Button>
-                    </SignInButton>
+                    </Link>
                     <SignInButton mode="modal">
-                      <Button className="w-full bg-foreground text-background">Get Started</Button>
+                      <Button className="w-full bg-foreground text-background">Sign in</Button>
                     </SignInButton>
                   </>
                 ) : (
