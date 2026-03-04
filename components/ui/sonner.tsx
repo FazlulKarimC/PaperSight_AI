@@ -20,7 +20,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       position="top-right"
       expand={true}
-      richColors
       closeButton
       duration={4000}
       toastOptions={{
@@ -32,7 +31,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           success: 'group-[.toast]:bg-background group-[.toast]:text-foreground group-[.toast]:border-accent',
           error: 'group-[.toast]:bg-background group-[.toast]:text-foreground group-[.toast]:border-destructive',
           warning: 'group-[.toast]:bg-background group-[.toast]:text-foreground group-[.toast]:border-yellow-500',
-          info: 'group-[.toast]:bg-background group-[.toast]:text-foreground group-[.toast]:border-blue-500',
+          info: 'group-[.toast]:bg-background group-[.toast]:text-foreground group-[.toast]:border-accent',
         },
       }}
       style={

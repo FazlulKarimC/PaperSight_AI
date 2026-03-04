@@ -25,14 +25,14 @@ export function SummaryContent({ summary }: SummaryContentProps) {
 
   const summaryCard = (
     <motion.div
-      className="relative rounded-xl border border-border bg-card p-8 sm:p-12 shadow-sm"
+      className="relative rounded-xl surface-raised p-8 sm:p-12"
       variants={fadeIn}
       initial="initial"
       animate="animate"
       transition={{ delay: 0.2 }}
     >
-      <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent"></div>
-      <div className="relative">
+      <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent" />
+      <div className="relative prose-editorial">
         <CheatsheetViewer summary={summary} />
       </div>
     </motion.div>
@@ -40,10 +40,10 @@ export function SummaryContent({ summary }: SummaryContentProps) {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link href={isSignedIn ? "/dashboard" : "/"}>
-          <Button variant="ghost" className="mb-8 gap-2">
+          <Button variant="ghost" className="mb-8 gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             {isSignedIn ? "Back to Dashboard" : "Back to Home"}
           </Button>
@@ -56,22 +56,19 @@ export function SummaryContent({ summary }: SummaryContentProps) {
           initial="initial"
           animate="animate"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-sm text-muted-foreground mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-            </span>
+          <div className="mono-label mb-4 flex items-center gap-2">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />
             AI-Generated Summary
             {summary.summary_style && summary.summary_style !== 'viral' && (
               <span className="ml-1 capitalize">• {summary.summary_style}</span>
             )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6 text-balance">
+          <h1 className="heading-display text-3xl sm:text-4xl lg:text-5xl text-foreground mb-6">
             {summary.title}
           </h1>
 
-          <div className="flex flex-wrap gap-4 sm:gap-6 text-sm text-muted-foreground border-b border-border pb-8">
+          <div className="flex flex-wrap gap-4 sm:gap-6 text-sm text-muted-foreground border-b border-border/50 pb-8">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-accent" />
               {new Date(summary.created_at).toLocaleDateString('en-US', {
@@ -105,14 +102,14 @@ export function SummaryContent({ summary }: SummaryContentProps) {
         {/* Reading Time Savings Banner */}
         {timeSaved && timeSaved.savedMinutes > 0 && (
           <motion.div
-            className="mb-8 rounded-xl border border-accent/20 bg-linear-to-r from-accent/5 via-accent/10 to-accent/5 p-5"
+            className="mb-8 rounded-xl surface-raised p-5 border-accent/20"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent/15">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/10 border border-accent/20">
                   <Zap className="h-5 w-5 text-accent" />
                 </div>
                 <div>
@@ -124,7 +121,7 @@ export function SummaryContent({ summary }: SummaryContentProps) {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1.5">
+              <div className="flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1.5 border border-accent/20">
                 <TrendingDown className="h-3.5 w-3.5 text-accent" />
                 <span className="text-sm font-bold text-accent">{timeSaved.savedPercent}% shorter</span>
               </div>
@@ -156,7 +153,7 @@ export function SummaryContent({ summary }: SummaryContentProps) {
           transition={{ delay: 1 }}
         >
           <SignInButton mode="modal">
-            <button className="flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background shadow-lg hover:bg-foreground/90 transition-colors">
+            <button className="flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground shadow-lg hover:bg-accent/90 transition-colors">
               <MessageSquare className="h-4 w-4" />
               Sign in to chat with this PDF
             </button>

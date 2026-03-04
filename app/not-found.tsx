@@ -2,18 +2,13 @@
 
 /**
  * Custom 404 Not Found Page
- * Displays when a page is not found with navigation options
- * 
- * Requirements: 4.2
- * - Custom 404 page with navigation options
  */
 
 import { motion } from 'framer-motion';
-import { Home, Search, ArrowLeft } from 'lucide-react';
+import { Home, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { fadeIn, slideUp } from '@/lib/animations';
-import { getAnimationConfig } from '@/lib/animations';
+import { fadeIn, slideUp, getAnimationConfig } from '@/lib/animations';
 
 export default function NotFound() {
   const router = useRouter();
@@ -28,7 +23,7 @@ export default function NotFound() {
         animate="animate"
         transition={{
           duration: animConfig.duration,
-          ease: animConfig.ease as any,
+          ease: animConfig.ease as [number, number, number, number],
         }}
       >
         {/* 404 Number */}
@@ -37,25 +32,25 @@ export default function NotFound() {
           variants={slideUp}
           initial="initial"
           animate="animate"
-          transition={{ 
+          transition={{
             duration: animConfig.duration,
-            ease: animConfig.ease as any,
-            delay: 0.1 
+            ease: animConfig.ease as [number, number, number, number],
+            delay: 0.1
           }}
         >
-          <h1 className="text-9xl font-bold text-accent">404</h1>
+          <h1 className="heading-display text-9xl text-accent">404</h1>
         </motion.div>
 
         {/* Title */}
         <motion.h2
-          className="mb-3 text-2xl font-semibold text-foreground"
+          className="mb-3 heading-ui text-2xl text-foreground"
           variants={slideUp}
           initial="initial"
           animate="animate"
-          transition={{ 
+          transition={{
             duration: animConfig.duration,
-            ease: animConfig.ease as any,
-            delay: 0.2 
+            ease: animConfig.ease as [number, number, number, number],
+            delay: 0.2
           }}
         >
           Page Not Found
@@ -67,13 +62,13 @@ export default function NotFound() {
           variants={slideUp}
           initial="initial"
           animate="animate"
-          transition={{ 
+          transition={{
             duration: animConfig.duration,
-            ease: animConfig.ease as any,
-            delay: 0.3 
+            ease: animConfig.ease as [number, number, number, number],
+            delay: 0.3
           }}
         >
-          The page you're looking for doesn't exist or has been moved.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </motion.p>
 
         {/* Navigation Options */}
@@ -82,20 +77,20 @@ export default function NotFound() {
           variants={slideUp}
           initial="initial"
           animate="animate"
-          transition={{ 
+          transition={{
             duration: animConfig.duration,
-            ease: animConfig.ease as any,
-            delay: 0.4 
+            ease: animConfig.ease as [number, number, number, number],
+            delay: 0.4
           }}
         >
           <Button
             onClick={() => router.push('/')}
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 bg-accent text-accent-foreground hover:bg-accent/90 font-medium"
           >
             <Home className="h-4 w-4" />
             Go Home
           </Button>
-          
+
           <Button
             onClick={() => router.back()}
             variant="outline"
@@ -110,7 +105,7 @@ export default function NotFound() {
             variant="outline"
             className="flex items-center justify-center gap-2"
           >
-            <Search className="h-4 w-4" />
+            <LayoutDashboard className="h-4 w-4" />
             Dashboard
           </Button>
         </motion.div>
@@ -121,13 +116,13 @@ export default function NotFound() {
           variants={fadeIn}
           initial="initial"
           animate="animate"
-          transition={{ 
+          transition={{
             duration: animConfig.duration,
-            ease: animConfig.ease as any,
-            delay: 0.5 
+            ease: animConfig.ease as [number, number, number, number],
+            delay: 0.5
           }}
         >
-          Lost in the papers? Let's get you back on track.
+          Lost in the papers? Let&apos;s get you back on track.
         </motion.div>
       </motion.div>
     </div>

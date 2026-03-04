@@ -289,7 +289,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                     >
                         <Button
                             onClick={() => setIsOpen(true)}
-                            className="h-14 w-14 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20 transition-all hover:scale-110 hover:shadow-accent/40"
+                            className="h-14 w-14 rounded-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15 transition-all hover:scale-105"
                             id="chat-toggle-button"
                         >
                             <MessageCircle className="h-6 w-6" />
@@ -306,11 +306,11 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                     <motion.div
                         className="fixed bottom-6 right-6 z-50 w-[420px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-2xl border border-border overflow-hidden"
                         style={{
-                            background: "oklch(0.1 0 0 / 0.95)",
-                            backdropFilter: "blur(20px) saturate(1.5)",
-                            WebkitBackdropFilter: "blur(20px) saturate(1.5)",
+                            background: "oklch(0.14 0.01 260 / 0.97)",
+                            backdropFilter: "blur(20px) saturate(1.3)",
+                            WebkitBackdropFilter: "blur(20px) saturate(1.3)",
                             boxShadow:
-                                "0 25px 50px -12px oklch(0 0 0 / 0.5), 0 0 0 1px oklch(0.3 0 0 / 0.3), 0 0 40px oklch(0.7 0.15 180 / 0.08)",
+                                "0 25px 50px -12px oklch(0 0 0 / 0.5), inset 0 1px 0 oklch(1 0 0 / 0.03), 0 0 30px oklch(0.78 0.16 55 / 0.06)",
                         }}
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -443,7 +443,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                                 <Button
                                     onClick={handleSend}
                                     disabled={!input.trim() || isStreaming}
-                                    className="h-8 w-8 shrink-0 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-30 transition-all"
+                                    className="h-8 w-8 shrink-0 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-30 transition-all font-medium"
                                     size="icon"
                                     id="chat-send-button"
                                 >
@@ -454,7 +454,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                                     )}
                                 </Button>
                             </div>
-                            <p className="text-[10px] text-muted-foreground/50 text-center mt-2">
+                            <p className="mono-label text-center mt-2 normal-case" style={{ fontSize: '10px', letterSpacing: '0.02em' }}>
                                 Answers are grounded in the document content via RAG
                             </p>
                         </div>

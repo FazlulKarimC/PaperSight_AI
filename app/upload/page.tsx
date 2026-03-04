@@ -64,54 +64,47 @@ export default function PdfUploadForm() {
   const canAddMore = files.length < MAX_FILE_COUNT
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen bg-background">
       <Header />
 
       {isUploading && <ProgressBar progress={uploadProgress} />}
 
       <PageTransition>
         <main className="pt-24 pb-20">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {/* Back Button */}
             <Link href={isSignedIn ? "/dashboard" : "/"}>
-              <Button variant="ghost" className="mb-8 gap-2">
+              <Button variant="ghost" className="mb-8 gap-2 text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" />
                 {isSignedIn ? "Back to Dashboard" : "Back to Home"}
               </Button>
             </Link>
 
             {/* Page Header */}
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-sm text-muted-foreground mb-6">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-                </span>
-                AI-Powered PDF Summarization
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-4">
+            <div className="mb-12">
+              <div className="mono-label mb-4">Upload</div>
+              <h1 className="heading-display text-4xl sm:text-5xl text-foreground mb-4">
                 Upload Your PDFs
               </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-lg text-muted-foreground max-w-2xl">
                 Upload up to {MAX_FILE_COUNT} PDFs at once for a combined summary,
-                or a single PDF for a focused analysis
+                or a single PDF for a focused analysis.
               </p>
             </div>
 
             {/* Alert */}
-            <Alert className="mb-6">
-              <AlertCircleIcon className="w-4 h-4" color="red" />
-              <AlertDescription className="text-destructive">
-                Please do not upload images or scanned PDFs. Only text-based PDFs are supported for summarization.
+            <Alert className="mb-6 surface-raised">
+              <AlertCircleIcon className="w-4 h-4 text-accent" />
+              <AlertDescription className="text-muted-foreground">
+                Only text-based PDFs are supported. Scanned images cannot be processed.
               </AlertDescription>
             </Alert>
 
             {/* Upload Section */}
-            <div className="relative rounded-xl border border-border bg-card p-8 sm:p-12">
-              <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent"></div>
+            <div className="relative rounded-xl surface-raised p-8 sm:p-12">
+              <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/8 via-transparent to-transparent" />
               <div className="relative">
-                {/* Dropzone — show when no files yet or can add more, and not uploading */}
+                {/* Dropzone */}
                 {(!hasFiles || canAddMore) && !isUploading && uploadStage === 'idle' && (
                   <DropZone
                     onFilesSelect={handleFilesSelect}
@@ -122,7 +115,7 @@ export default function PdfUploadForm() {
                 )}
 
                 {validationError && (
-                  <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                  <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
                     {validationError}
                   </div>
                 )}
@@ -140,9 +133,7 @@ export default function PdfUploadForm() {
                     transition={{ delay: 0.15 }}
                     className="mt-6"
                   >
-                    <label className="block text-sm font-medium text-foreground mb-3">
-                      Summary Style
-                    </label>
+                    <label className="mono-label mb-3 block">Summary Style</label>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       {SUMMARY_STYLES.map((style) => (
                         <button
@@ -152,7 +143,7 @@ export default function PdfUploadForm() {
                           className={`
                             relative flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-all duration-200
                             ${summaryStyle === style.value
-                              ? 'border-accent bg-accent/10 text-accent shadow-sm shadow-accent/20'
+                              ? 'border-accent bg-accent/10 text-accent shadow-sm shadow-accent/10'
                               : 'border-border bg-secondary/50 text-muted-foreground hover:border-accent/40 hover:bg-accent/5'
                             }
                           `}
@@ -185,11 +176,11 @@ export default function PdfUploadForm() {
                           <stageInfo.icon className={`h-5 w-5 ${stageInfo.color} ${uploadStage !== 'success' ? 'animate-pulse' : ''}`} />
                           <p className="text-sm font-medium text-foreground">{stageInfo.text}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
+                        <p className="mono-label">{uploadProgress}%</p>
                       </div>
-                      <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                         <motion.div
-                          className="bg-accent h-2 rounded-full"
+                          className="bg-accent h-1.5 rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${uploadProgress}%` }}
                           transition={{ duration: 0.5, ease: "easeOut" }}
@@ -212,8 +203,8 @@ export default function PdfUploadForm() {
                       className="mt-6"
                     >
                       {streamingText ? (
-                        <div className="rounded-xl border border-border bg-card/50 p-6 max-h-64 overflow-y-auto">
-                          <p className="text-xs font-medium text-accent mb-3 flex items-center gap-2">
+                        <div className="rounded-xl surface-raised p-6 max-h-64 overflow-y-auto">
+                          <p className="mono-label mb-3 flex items-center gap-2 text-accent">
                             <FileSearch className="h-3.5 w-3.5 animate-pulse" />
                             Streaming summary{files.length > 1 ? ` from ${files.length} PDFs` : ""}...
                           </p>
@@ -272,7 +263,7 @@ export default function PdfUploadForm() {
                     <Button
                       onClick={handleUpload}
                       disabled={!hasFiles || isUploading}
-                      className="px-8 bg-foreground text-background hover:bg-foreground/90"
+                      className="px-8 bg-accent text-accent-foreground hover:bg-accent/90 font-medium"
                     >
                       {files.length > 1 ? `Summarize ${files.length} PDFs` : "Upload & Summarize"}
                     </Button>
@@ -282,18 +273,18 @@ export default function PdfUploadForm() {
             </div>
 
             {/* Info Section */}
-            <div className="mt-12 grid sm:grid-cols-3 gap-6">
-              <div className="text-center p-6 rounded-lg border border-border bg-card/50">
-                <div className="text-3xl font-bold text-accent mb-2">16MB</div>
+            <div className="mt-12 grid sm:grid-cols-3 gap-4">
+              <div className="text-center p-6 surface-raised rounded-xl">
+                <div className="heading-display text-3xl text-accent mb-2">16MB</div>
                 <p className="text-sm text-muted-foreground">Max per file</p>
               </div>
-              <div className="text-center p-6 rounded-lg border border-border bg-card/50">
-                <div className="text-3xl font-bold text-accent mb-2">{MAX_FILE_COUNT}</div>
+              <div className="text-center p-6 surface-raised rounded-xl">
+                <div className="heading-display text-3xl text-accent mb-2">{MAX_FILE_COUNT}</div>
                 <p className="text-sm text-muted-foreground">PDFs per batch</p>
               </div>
-              <div className="text-center p-6 rounded-lg border border-border bg-card/50">
-                <div className="text-3xl font-bold text-accent mb-2">AI</div>
-                <p className="text-sm text-muted-foreground">Powered by Gemini 3</p>
+              <div className="text-center p-6 surface-raised rounded-xl">
+                <div className="heading-display text-3xl text-accent mb-2">AI</div>
+                <p className="text-sm text-muted-foreground">Powered by Gemini</p>
               </div>
             </div>
           </div>

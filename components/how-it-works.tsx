@@ -5,43 +5,51 @@ const steps = [
     number: "01",
     icon: Upload,
     title: "Upload your PDF",
-    description: "Drag and drop or click to upload any PDF document up to 50MB.",
+    description: "Drag and drop or browse to upload a text-based PDF document.",
   },
   {
     number: "02",
     icon: Cpu,
-    title: "AI processes content",
-    description: "Our AI analyzes the document structure, content, and context in seconds.",
+    title: "AI analyzes content",
+    description: "Advanced language models parse document structure and extract key insights in seconds.",
   },
   {
     number: "03",
     icon: FileText,
-    title: "Get your summary",
-    description: "Receive a clear, structured summary with key points and insights.",
+    title: "Read & interact",
+    description: "Get a structured summary with key points, then chat with the document using RAG.",
   },
 ]
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 border-t border-border">
+    <section id="how-it-works" className="py-24 border-t border-border/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">How it works</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">Get from document to summary in three simple steps.</p>
+        <div className="mb-16">
+          <div className="mono-label mb-4">Process</div>
+          <h2 className="heading-display text-4xl sm:text-5xl text-foreground mb-4">
+            Three steps to clarity.
+          </h2>
+          <p className="text-muted-foreground max-w-lg text-lg">
+            From uploaded PDF to actionable insights in under a minute.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
-            <div key={step.number} className="relative">
+            <div key={step.number} className="relative group">
+              {/* Connector line */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-1/2 w-full h-px bg-border" />
+                <div className="hidden md:block absolute top-10 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-border/50" />
               )}
-              <div className="relative flex flex-col items-center text-center">
-                <div className="relative z-10 rounded-full border border-border bg-card p-4 mb-6">
-                  <step.icon className="h-8 w-8 text-foreground" />
+              <div className="relative flex flex-col">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl surface-raised group-hover:border-accent/30 transition-colors">
+                    <step.icon className="h-5 w-5 text-accent" />
+                  </div>
+                  <span className="mono-label">{step.number}</span>
                 </div>
-                <span className="text-xs font-mono text-muted-foreground mb-2">{step.number}</span>
-                <h3 className="text-xl font-semibold text-foreground mb-2">{step.title}</h3>
+                <h3 className="heading-ui text-lg text-foreground mb-2">{step.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{step.description}</p>
               </div>
             </div>
