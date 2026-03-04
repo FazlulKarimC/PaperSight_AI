@@ -1,28 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { getSystemPrompt, type SummaryStyle } from "@/lib/utils";
+import { withRetry } from "@/lib/retry";
 
 export type { SummaryStyle };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-/**
- * Helper to retry promises with exponential backoff to handle free-tier API 503/429 errors.
- */
-async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn();
-    } catch (error: any) {
-      const isRetryable = error?.status === 503 || error?.status === 429 || error?.toString().includes("503") || error?.toString().includes("UNAVAILABLE");
-      if (!isRetryable || i === retries - 1) throw error;
-
-      console.warn(`[GEMINI API] 503/429 Model overloaded. Retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-      delayMs *= 2; // exponential backoff
-    }
-  }
-  throw new Error("Max retries exceeded");
-}
 
 export const generateContentUsingGemini = async (
   pdfText: string,

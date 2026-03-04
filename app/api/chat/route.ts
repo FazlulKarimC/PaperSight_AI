@@ -8,29 +8,14 @@ import {
     hasEmbeddings,
     storeEmbeddings,
 } from "@/lib/embeddings";
+import { withRetry } from "@/lib/retry";
 
 export const maxDuration = 60;
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-/**
- * Helper to retry promises with exponential backoff to handle free-tier API 503/429 errors.
- */
-async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
-    for (let i = 0; i < retries; i++) {
-        try {
-            return await fn();
-        } catch (error: any) {
-            const isRetryable = error?.status === 503 || error?.status === 429 || error?.toString().includes("503") || error?.toString().includes("UNAVAILABLE");
-            if (!isRetryable || i === retries - 1) throw error;
-
-            console.warn(`[GEMINI API] 503/429 Model overloaded. Retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-            delayMs *= 2; // exponential backoff
-        }
-    }
-    throw new Error("Max retries exceeded");
-}
+// Simple in-memory lock to prevent concurrent embedding generation for the same summary
+const indexingInProgress = new Set<string>();
 
 /**
  * POST /api/chat
@@ -80,14 +65,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Auto-index: if embeddings don't exist yet, generate them now
+        // Auto-index: if embeddings don't exist yet, generate them now (with lock)
         const indexed = await hasEmbeddings(summaryId);
-        if (!indexed) {
-            // Combine title + summary text for richer embeddings
-            const fullText = [summary.title, summary.summaryText]
-                .filter(Boolean)
-                .join("\n\n");
-            await storeEmbeddings(summaryId, userId, fullText);
+        if (!indexed && !indexingInProgress.has(summaryId)) {
+            indexingInProgress.add(summaryId);
+            try {
+                // Combine title + summary text for richer embeddings
+                const fullText = [summary.title, summary.summaryText]
+                    .filter(Boolean)
+                    .join("\n\n");
+                await storeEmbeddings(summaryId, userId, fullText);
+            } finally {
+                indexingInProgress.delete(summaryId);
+            }
+        } else if (indexingInProgress.has(summaryId)) {
+            // Wait briefly for concurrent indexing to finish
+            await new Promise((resolve) => setTimeout(resolve, 2000));
         }
 
         // Retrieve relevant chunks via vector similarity

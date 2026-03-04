@@ -45,17 +45,22 @@ export async function getSummaries(userId: string) {
     }
 }
 
-export const getSummaryById = cache(async (id: string): Promise<Summary[] | null> => {
+export const getSummaryById = cache(async (id: string, userId?: string): Promise<Summary | null> => {
     try {
-        const summary = await prisma.pdfSummary.findUnique({
-            where: { id },
+        const where: { id: string; userId?: string } = { id };
+        if (userId) {
+            where.userId = userId;
+        }
+
+        const summary = await prisma.pdfSummary.findFirst({
+            where,
         });
 
         if (!summary) return null;
 
         const wordCount = summary.summaryText.split(/\s+/).length;
 
-        return [{
+        return {
             id: summary.id,
             user_id: summary.userId,
             original_file_url: summary.originalFileUrl,
@@ -68,7 +73,7 @@ export const getSummaryById = cache(async (id: string): Promise<Summary[] | null
             word_count: wordCount,
             summary_style: summary.summaryStyle,
             original_word_count: summary.originalWordCount,
-        }] as Summary[];
+        } as Summary;
     } catch (error) {
         console.error("Error fetching summary:", error);
         return null;

@@ -224,7 +224,8 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
                     const line = event.trim();
                     if (!line.startsWith("data: ")) continue;
 
-                    const data = JSON.parse(line.slice(6));
+                    let data;
+                    try { data = JSON.parse(line.slice(6)); } catch { continue; }
                     switch (data.type) {
                         case "chunk":
                             fullText += data.text;
@@ -265,7 +266,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
 
     function clearChat() {
         setMessages([]);
-        historyLoadedRef.current = false;
+        // Don't reset historyLoadedRef — prevents old messages from reappearing on reopen
     }
 
     const suggestedQuestions = [
@@ -304,7 +305,7 @@ export function ChatPanel({ summaryId, summaryTitle }: ChatPanelProps) {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        className="fixed bottom-6 right-6 z-50 w-[420px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-2xl border border-border overflow-hidden"
+                        className="fixed bottom-6 right-6 z-50 w-[420px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] flex flex-col rounded-2xl border border-border overflow-hidden"
                         style={{
                             background: "oklch(0.14 0.01 260 / 0.97)",
                             backdropFilter: "blur(20px) saturate(1.3)",

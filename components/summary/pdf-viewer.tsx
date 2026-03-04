@@ -25,7 +25,7 @@ export function PdfSplitView({ fileUrl, children }: PdfViewerProps) {
         return () => window.removeEventListener("resize", check)
     }, [])
 
-    const handleToggle = () => {
+    const handleOpen = () => {
         if (isMobile) {
             toast.info("Desktop only", {
                 description: "Split PDF view is only available on desktop screens.",
@@ -39,7 +39,7 @@ export function PdfSplitView({ fileUrl, children }: PdfViewerProps) {
         return (
             <div>
                 <button
-                    onClick={handleToggle}
+                    onClick={handleOpen}
                     className={`mb-4 inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${isMobile
                         ? "border-border bg-secondary/30 text-muted-foreground/50 cursor-not-allowed"
                         : "border-border bg-secondary/50 text-muted-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30"

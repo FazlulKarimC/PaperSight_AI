@@ -8,7 +8,7 @@ import { ArrowLeft, Calendar, Clock, FileText, Link as LinkIcon, Zap, TrendingDo
 import { PageTransition } from "@/components/ui/loading/page-transition";
 import { fadeIn } from "@/lib/animations";
 import { Summary } from "@/lib/getSummaries";
-import { calculateTimeSaved } from "@/lib/utils";
+import { calculateTimeSaved, calculateReadingTime } from "@/lib/utils";
 import { PdfSplitView } from "@/components/summary/pdf-viewer";
 import { ChatPanel } from "@/components/summary/chat-panel";
 import { useUser, SignInButton } from "@clerk/nextjs";
@@ -79,7 +79,7 @@ export function SummaryContent({ summary }: SummaryContentProps) {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-accent" />
-              {Math.ceil(summary.word_count / 100)} min read
+              {calculateReadingTime(summary.word_count)} min read
             </div>
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-accent" />

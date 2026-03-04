@@ -4,20 +4,14 @@
  * For server-side rate limit checks, import from "@/lib/guest-rate-limit" directly.
  */
 
-// ── Constants ──────────────────────────────────────────────────────
-const RATE_LIMIT_COOKIE = "guestUsage";
-const MAX_GUEST_SUMMARIES_PER_DAY = 10;
+import {
+    RATE_LIMIT_COOKIE,
+    MAX_GUEST_SUMMARIES_PER_DAY,
+    type GuestUsage,
+    type RateLimitResult,
+} from "@/lib/guest-constants";
 
-interface GuestUsage {
-    count: number;
-    resetAt: string; // ISO timestamp
-}
-
-export interface RateLimitResult {
-    allowed: boolean;
-    remaining: number;
-    limit: number;
-}
+export type { RateLimitResult };
 
 /**
  * Client-side: Read the guestUsage cookie and check quota.

@@ -87,7 +87,8 @@ async function consumeSummarizeTextStream(
       const line = event.trim()
       if (!line.startsWith("data: ")) continue
 
-      const data = JSON.parse(line.slice(6))
+      let data;
+      try { data = JSON.parse(line.slice(6)); } catch { continue; }
       switch (data.type) {
         case "meta":
           originalWordCount = data.originalWordCount
@@ -120,6 +121,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
   const [parseProgress, setParseProgress] = useState<string>("")
   const cancelUploadRef = useRef<boolean>(false)
   const activeToastRef = useRef<string | number | null>(null)
+  const didErrorRef = useRef<boolean>(false)
   const router = useRouter()
 
   const { startUpload } = useUploadThing("pdfUploader", {
@@ -161,6 +163,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
     setStreamingText("")
     setParseProgress("")
     cancelUploadRef.current = false
+    didErrorRef.current = false
 
     let currentToastId: string | number | null = null
 
@@ -334,7 +337,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
               message: '__index__',
               history: [],
             }),
-          }).catch(() => { })
+          }).catch((err) => console.error('Embedding indexing failed:', err))
         }
       } else {
         toast.success("Summary Generated!", {
@@ -355,6 +358,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
     } catch (error) {
       dismissActiveToast()
       setUploadStage('error')
+      didErrorRef.current = true
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
       setUploadError(errorMessage)
 
@@ -378,7 +382,7 @@ export function usePDFUpload({ onUploadComplete, isSignedIn = true }: UsePDFUplo
         )
       }
     } finally {
-      if (uploadStage !== 'error') {
+      if (!didErrorRef.current) {
         setTimeout(() => {
           setFiles([])
           setIsUploading(false)

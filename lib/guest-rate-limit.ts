@@ -5,22 +5,15 @@
  */
 
 import { cookies } from "next/headers";
+import {
+    RATE_LIMIT_COOKIE,
+    MAX_GUEST_SUMMARIES_PER_DAY,
+    WINDOW_MS,
+    type GuestUsage,
+    type RateLimitResult,
+} from "@/lib/guest-constants";
 
-// ── Constants ──────────────────────────────────────────────────────
-const RATE_LIMIT_COOKIE = "guestUsage";
-const MAX_GUEST_SUMMARIES_PER_DAY = 10;
-const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-interface GuestUsage {
-    count: number;
-    resetAt: string; // ISO timestamp
-}
-
-export interface RateLimitResult {
-    allowed: boolean;
-    remaining: number;
-    limit: number;
-}
+export type { RateLimitResult };
 
 // ── Server-side check ──────────────────────────────────────────────
 

@@ -3,8 +3,9 @@
 import { generateContentUsingGemini } from "@/lib/gemini"
 import parse from "@/lib/parse"
 import { prisma } from "@/lib/prisma"
-import { getGuestUserId, type SummaryStyle } from "@/lib/utils"
+import { type SummaryStyle } from "@/lib/utils"
 import { auth } from "@clerk/nextjs/server"
+import { getOrCreateGuestId } from "@/lib/guest-session"
 
 // Types
 interface PDFSummary {
@@ -140,7 +141,7 @@ export const savePDFSummary = async ({
 }: PDFSummary): Promise<ApiResponse<any>> => {
     try {
         const { userId } = await auth()
-        const effectiveUserId = userId || getGuestUserId()
+        const effectiveUserId = userId || await getOrCreateGuestId()
 
         if (!userId) {
             console.error("User not authenticated")

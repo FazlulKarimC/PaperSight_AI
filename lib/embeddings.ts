@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/prisma";
+import { withRetry } from "@/lib/retry";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -35,27 +36,6 @@ export function chunkText(text: string): string[] {
 
     return chunks;
 }
-
-/**
- * Helper to retry promises with exponential backoff to handle free-tier API 503/429 errors.
- */
-async function withRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
-    for (let i = 0; i < retries; i++) {
-        try {
-            return await fn();
-        } catch (error: any) {
-            const isRetryable = error?.status === 503 || error?.status === 429 || error?.toString().includes("503") || error?.toString().includes("UNAVAILABLE");
-            if (!isRetryable || i === retries - 1) throw error;
-
-            console.warn(`[GEMINI API] 503/429 Model overloaded. Retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-            delayMs *= 2; // exponential backoff
-        }
-    }
-    throw new Error("Max retries exceeded");
-}
-
-// ── Embedding Generation ──────────────────────────────────────────
 
 /**
  * Generates a vector embedding for a single text string using Gemini's

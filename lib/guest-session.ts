@@ -1,9 +1,8 @@
 import { cookies } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
+import { GUEST_COOKIE_NAME, GUEST_PREFIX } from "./guest-constants";
 
 // ── Constants ──────────────────────────────────────────────────────
-export const GUEST_PREFIX = "guest-";
-export const GUEST_COOKIE_NAME = "guestId";
 const GUEST_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
 // ── Helpers ────────────────────────────────────────────────────────

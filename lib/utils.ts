@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { v4 as uuidv4 } from 'uuid';
 
 // ── Summary Style System ──────────────────────────────────────────
 export type SummaryStyle = 'viral' | 'concise' | 'detailed' | 'bullet-points' | 'academic'
@@ -24,9 +23,7 @@ export function formatFileSize(bytes: number): string {
   else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
 }
 
-export function getGuestUserId(): string {
-  return `guest-${uuidv4()}`
-}
+
 
 // ── Reading Time Utilities ────────────────────────────────────────
 const WORDS_PER_MINUTE = 238  // average adult reading speed
@@ -101,8 +98,7 @@ Example:
 # CONTENT: Strong title, structured like an abstract + review.`,
 }
 
-// Keep the default export for backward compatibility
-export const SUMMARY_SYSTEM_PROMPT = STYLE_PROMPTS.viral
+
 
 export function getSystemPrompt(style: SummaryStyle = 'viral'): string {
   return STYLE_PROMPTS[style] || STYLE_PROMPTS.viral

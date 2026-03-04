@@ -8,12 +8,20 @@ import { getSummaries } from "@/lib/getSummaries"
 import { useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import type { Summary } from '@/lib/getSummaries'
-import { getGuestUserId } from '@/lib/utils'
+import { GUEST_COOKIE_NAME, GUEST_PREFIX } from "@/lib/guest-constants"
 import { staggerContainer } from "@/lib/animations"
 import { SkeletonCard } from "@/components/ui/loading/skeleton-card"
 import useSWR, { useSWRConfig } from 'swr'
 
-
+/** Read guest ID from cookie (client-side) */
+function getGuestIdFromCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split("; ")
+    .find((c) => c.startsWith(`${GUEST_COOKIE_NAME}=`));
+  const value = match?.split("=").slice(1).join("=");
+  return value && value.startsWith(GUEST_PREFIX) ? value : null;
+}
 
 export default function SummaryList() {
   const { user, isLoaded } = useUser();
@@ -22,8 +30,8 @@ export default function SummaryList() {
   useEffect(() => {
     if (!isLoaded) return;
     const clerkUserId = user?.id;
-    const guestUserId = getGuestUserId();
-    setEffectiveUserId(clerkUserId || guestUserId || null);
+    const guestId = getGuestIdFromCookie();
+    setEffectiveUserId(clerkUserId || guestId || null);
   }, [user?.id, isLoaded]);
 
   const swrKey = effectiveUserId ? `summaries/${effectiveUserId}` : null;
