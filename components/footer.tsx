@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { FileText } from "lucide-react"
+import Image from "next/image"
 
 const footerLinks = {
   Product: [
@@ -27,8 +27,8 @@ export function Footer() {
         <div className="flex flex-col md:flex-row md:justify-between gap-12">
           <div className="max-w-sm">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg surface-raised">
-                <FileText className="h-4 w-4 text-accent" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden surface-raised">
+                <Image src="/logo.png" alt="PaperSight AI Logo" width={32} height={32} />
               </div>
               <span className="text-base font-semibold tracking-tight text-foreground">PaperSight AI</span>
             </div>

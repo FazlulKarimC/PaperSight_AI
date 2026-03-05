@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getOrCreateGuestId, buildGuestIdCookieHeader } from "@/lib/guest-session";
 import { z } from "zod";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+
 
 const saveSummarySchema = z.object({
     fileUrl: z.string().default(""),

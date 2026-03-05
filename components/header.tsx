@@ -3,7 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, X, FileText } from "lucide-react"
+import Image from "next/image"
+import { Menu, X } from "lucide-react"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 
 export function Header() {
@@ -15,8 +16,8 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg surface-raised group-hover:border-accent/30 transition-colors">
-              <FileText className="h-4 w-4 text-accent" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden surface-raised group-hover:border-accent/30 transition-colors">
+              <Image src="/logo.png" alt="PaperSight AI Logo" width={32} height={32} />
             </div>
             <span className="text-base font-semibold tracking-tight text-foreground">PaperSight AI</span>
           </Link>

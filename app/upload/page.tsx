@@ -1,5 +1,8 @@
 "use client"
 
+// Note: metadata for this route is in app/upload/layout.tsx
+
+
 import { Button } from "@/components/ui/button"
 import { DropZone } from "@/components/ui/upload/dropzone"
 import { FilePreview } from "@/components/ui/upload/file-preview"

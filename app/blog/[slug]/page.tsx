@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -16,10 +17,36 @@ interface BlogPostPageProps {
     }>
 }
 
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+    const { slug } = await params
+    const post = getPostBySlug(slug)
+    if (!post) return {}
+    return {
+        title: post.title,
+        description: post.excerpt,
+        alternates: { canonical: `https://papersight.vercel.app/blog/${slug}` },
+        openGraph: {
+            title: post.title,
+            description: post.excerpt,
+            url: `https://papersight.vercel.app/blog/${slug}`,
+            type: "article",
+            publishedTime: post.date,
+            authors: [post.author],
+            ...(post.featuredImage ? { images: [{ url: post.featuredImage, alt: post.title }] } : {}),
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: post.title,
+            description: post.excerpt,
+        },
+    }
+}
+
 export function generateStaticParams() {
     const slugs = getAllPostSlugs()
     return slugs.map((slug) => ({ slug }))
 }
+
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
     const { slug } = await params

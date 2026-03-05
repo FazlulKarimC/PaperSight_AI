@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu } from "lucide-react"
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs"
 
@@ -37,9 +38,7 @@ export default function Navbar() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-b from-slate-500 to-slate-700 flex items-center justify-center">
-            <span className="text-white font-bold">PS</span>
-          </div>
+          <Image src="/logo.png" alt="PaperSight AI Logo" width={32} height={32} className="rounded-md" />
           <span className="font-bold text-xl hidden sm:inline-block">PaperSight AI</span>
         </Link>
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -5,6 +6,15 @@ import Link from "next/link"
 import { ArrowLeft, Calendar, Clock } from "lucide-react"
 import { getAllPosts } from "@/lib/mdx"
 import Image from "next/image"
+
+export const metadata: Metadata = {
+    title: "Blog",
+    description:
+        "Insights, updates, and tips from the PaperSight AI team. Explore the latest trends in AI-powered document analysis, research productivity, and tools for smarter reading.",
+    alternates: { canonical: "https://papersight.vercel.app/blog" },
+    openGraph: { url: "https://papersight.vercel.app/blog" },
+}
+
 
 export default function BlogPage() {
     const posts = getAllPosts()

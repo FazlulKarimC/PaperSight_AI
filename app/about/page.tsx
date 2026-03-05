@@ -1,8 +1,18 @@
+import type { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+
+export const metadata: Metadata = {
+    title: "About",
+    description:
+        "Learn about PaperSight AI — our mission to make document analysis accessible to everyone. Built for researchers, students, and professionals who value their time.",
+    alternates: { canonical: "https://papersight.vercel.app/about" },
+    openGraph: { url: "https://papersight.vercel.app/about" },
+}
+
 
 export default function AboutPage() {
     return (

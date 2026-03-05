@@ -1,8 +1,18 @@
+import type { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, Mail, MapPin, Phone } from "lucide-react"
+
+export const metadata: Metadata = {
+    title: "Contact",
+    description:
+        "Get in touch with the PaperSight AI team. We typically respond within 24 hours. Have questions, feedback, or want a demo? We'd love to hear from you.",
+    alternates: { canonical: "https://papersight.vercel.app/contact" },
+    openGraph: { url: "https://papersight.vercel.app/contact" },
+}
+
 
 export default function ContactPage() {
     return (

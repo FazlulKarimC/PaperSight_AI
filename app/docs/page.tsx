@@ -1,8 +1,18 @@
+import type { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, BookOpen, Search, Code, Zap } from "lucide-react"
+
+export const metadata: Metadata = {
+    title: "Documentation",
+    description:
+        "Everything you need to know about using PaperSight AI — getting started guides, user manual, API reference, and step-by-step tutorials.",
+    alternates: { canonical: "https://papersight.vercel.app/docs" },
+    openGraph: { url: "https://papersight.vercel.app/docs" },
+}
+
 
 const docSections = [
     {
