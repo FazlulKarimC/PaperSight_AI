@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import useSWR from 'swr';
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import {
     MessageCircle,
@@ -68,81 +70,65 @@ function useRAGStageAnimation(isActive: boolean) {
 // ── Markdown Rendering ────────────────────────────────────────────
 
 function renderMessageContent(content: string) {
-    const paragraphs = content.split(/\n\n+/);
-
-    return paragraphs.map((paragraph, pIdx) => {
-        const lines = paragraph.split("\n");
-        const isList = lines.every(
-            (l) => l.trim().startsWith("- ") || l.trim().startsWith("* ") || l.trim() === ""
-        );
-
-        if (isList && lines.some((l) => l.trim().startsWith("- ") || l.trim().startsWith("* "))) {
-            return (
-                <ul key={pIdx} className="list-disc list-inside space-y-1 my-1">
-                    {lines
-                        .filter((l) => l.trim())
-                        .map((line, lIdx) => (
-                            <li key={lIdx} className="text-sm">
-                                {line.replace(/^[\s]*[-*]\s/, "")}
-                            </li>
-                        ))}
-                </ul>
-            );
-        }
-
-        if (paragraph.trim().startsWith("### ")) {
-            return (
-                <h4 key={pIdx} className="heading-ui text-sm mt-2 mb-1">
-                    {paragraph.replace(/^###\s/, "")}
-                </h4>
-            );
-        }
-        if (paragraph.trim().startsWith("## ")) {
-            return (
-                <h3 key={pIdx} className="heading-ui text-sm mt-2 mb-1">
-                    {paragraph.replace(/^##\s/, "")}
-                </h3>
-            );
-        }
-
-        return (
-            <p key={pIdx} className="text-sm leading-relaxed my-1">
-                {paragraph.split("\n").map((line, lIdx) => (
-                    <span key={lIdx}>
-                        {lIdx > 0 && <br />}
-                        {formatInlineText(line)}
-                    </span>
-                ))}
-            </p>
-        );
-    });
-}
-
-function formatInlineText(text: string) {
-    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
-    return parts.map((part, i) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-            return (
-                <strong key={i} className="font-semibold">
-                    {part.slice(2, -2)}
-                </strong>
-            );
-        }
-        if (part.startsWith("*") && part.endsWith("*")) {
-            return <em key={i}>{part.slice(1, -1)}</em>;
-        }
-        if (part.startsWith("`") && part.endsWith("`")) {
-            return (
-                <code
-                    key={i}
-                    className="px-1.5 py-0.5 rounded bg-secondary text-accent text-xs font-mono"
-                >
-                    {part.slice(1, -1)}
-                </code>
-            );
-        }
-        return part;
-    });
+    return (
+        <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+                h1: ({ children }) => (
+                    <h2 className="heading-ui text-base mt-3 mb-1.5">{children}</h2>
+                ),
+                h2: ({ children }) => (
+                    <h3 className="heading-ui text-sm mt-2 mb-1">{children}</h3>
+                ),
+                h3: ({ children }) => (
+                    <h4 className="heading-ui text-sm mt-2 mb-1">{children}</h4>
+                ),
+                p: ({ children }) => (
+                    <p className="text-sm leading-relaxed my-1">{children}</p>
+                ),
+                ul: ({ children }) => (
+                    <ul className="list-disc list-inside space-y-1 my-1">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                    <ol className="list-decimal list-inside space-y-1 my-1">{children}</ol>
+                ),
+                li: ({ children }) => (
+                    <li className="text-sm">{children}</li>
+                ),
+                strong: ({ children }) => (
+                    <strong className="font-semibold">{children}</strong>
+                ),
+                em: ({ children }) => <em>{children}</em>,
+                code: ({ children, className }) => {
+                    const isBlock = className?.includes("language-");
+                    if (isBlock) {
+                        return (
+                            <pre className="bg-secondary rounded-lg p-3 my-2 overflow-x-auto">
+                                <code className="text-xs font-mono text-accent">{children}</code>
+                            </pre>
+                        );
+                    }
+                    return (
+                        <code className="px-1.5 py-0.5 rounded bg-secondary text-accent text-xs font-mono">
+                            {children}
+                        </code>
+                    );
+                },
+                a: ({ href, children }) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent underline underline-offset-2 hover:text-accent/80 transition-colors">
+                        {children}
+                    </a>
+                ),
+                blockquote: ({ children }) => (
+                    <blockquote className="border-l-2 border-accent/40 pl-3 my-2 text-muted-foreground italic">
+                        {children}
+                    </blockquote>
+                ),
+            }}
+        >
+            {content}
+        </ReactMarkdown>
+    );
 }
 
 // ── Source Citation Card ──────────────────────────────────────────

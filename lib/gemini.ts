@@ -6,41 +6,11 @@ export type { SummaryStyle };
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-export const generateContentUsingGemini = async (
-  pdfText: string,
-  style: SummaryStyle = "viral"
-) => {
-  try {
-    console.log(`Generating ${style} summary with Gemini, text length:`, pdfText.length);
-
-    const systemPrompt = getSystemPrompt(style);
-
-    const response = await withRetry(() => ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `your role: ${systemPrompt}\n\n summarize the following pdftext and give response in markdown as per above mentioned format: \n\n${pdfText}`,
-      config: {
-        temperature: style === "academic" ? 0.3 : style === "viral" ? 0.6 : 0.5,
-        maxOutputTokens: style === "detailed" ? 3000 : style === "concise" ? 800 : 1500,
-      },
-    }));
-
-    const text = response.text;
-    console.log("Gemini response received, length:", text?.length || 0);
-
-    if (!text) {
-      console.error("Gemini returned empty response");
-      throw new Error("Gemini returned empty response");
-    }
-
-    return text;
-  } catch (error) {
-    console.error("Error generating content with Gemini:", error);
-    throw error;
-  }
-}
-
 /**
- * Streaming variant — returns a ReadableStream<string> for Edge functions
+ * Streaming variant — returns a ReadableStream<string> for SSE responses.
+ *
+ * Uses Gemini's `systemInstruction` config field (not content concatenation)
+ * to prevent adversarial PDF content from overriding the system prompt.
  */
 export const generateContentStreamUsingGemini = async (
   pdfText: string,
@@ -50,10 +20,17 @@ export const generateContentStreamUsingGemini = async (
 
   const response = await withRetry(() => ai.models.generateContentStream({
     model: "gemini-3-flash-preview",
-    contents: `your role: ${systemPrompt}\n\n summarize the following pdftext and give response in markdown as per above mentioned format: \n\n${pdfText}`,
+    contents: `Summarize the following document text and respond in markdown as per the format specified in your instructions:\n\n${pdfText}`,
     config: {
+      systemInstruction: systemPrompt,
       temperature: style === "academic" ? 0.3 : style === "viral" ? 0.6 : 0.5,
-      maxOutputTokens: style === "detailed" ? 3000 : style === "concise" ? 800 : 1500,
+      maxOutputTokens: ({
+        concise: 1000,
+        viral: 2000,
+        'bullet-points': 2000,
+        academic: 2000,
+        detailed: 3000,
+      } as Record<string, number>)[style] ?? 2000,
     },
   }));
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import CheatsheetViewer from "@/components/summary/cheatsheet-viewer";
+import SummaryContentCard from "@/components/summary/summary-content-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, FileText, Link as LinkIcon, Zap, TrendingDown, MessageSquare } from "lucide-react";
@@ -33,7 +33,7 @@ export function SummaryContent({ summary }: SummaryContentProps) {
     >
       <div className="absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent" />
       <div className="relative prose-editorial">
-        <CheatsheetViewer summary={summary} />
+        <SummaryContentCard summary={summary} />
       </div>
     </motion.div>
   );

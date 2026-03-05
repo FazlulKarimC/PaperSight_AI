@@ -47,6 +47,32 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // ── Internal indexing signal ─────────────────────────────────
+        // The upload hook sends '__index__' to pre-generate embeddings.
+        // We must handle this BEFORE touching Gemini or chat history.
+        if (message === "__index__") {
+            const summary = await prisma.pdfSummary.findFirst({
+                where: { id: summaryId, userId },
+            });
+            if (!summary) {
+                return new Response(
+                    JSON.stringify({ error: "Summary not found" }),
+                    { status: 404, headers: { "Content-Type": "application/json" } }
+                );
+            }
+            const indexed = await hasEmbeddings(summaryId);
+            if (!indexed) {
+                const fullText = [summary.title, summary.summaryText]
+                    .filter(Boolean)
+                    .join("\n\n");
+                await storeEmbeddings(summaryId, userId, fullText);
+            }
+            return new Response(
+                JSON.stringify({ success: true, indexed: !indexed }),
+                { headers: { "Content-Type": "application/json" } }
+            );
+        }
+
         // Parallelize DB lookup for summary and embedding generation for the query
         const [summary, queryEmbedding] = await Promise.all([
             prisma.pdfSummary.findFirst({
